@@ -1,0 +1,64 @@
+#!/bin/bash
+
+LOGFILE_NAME="installer_log.txt"
+
+INSTALL_DIR="/etc/ookla-speedtest"
+RESULT_DIR="${INSTALL_DIR}/results"
+LOG_DIR="${INSTALL_DIR}/logs"
+
+LOGFILE="${LOG_DIR}/${LOGFILE_NAME}"
+TMP_LOGFILE="/home/${USER}/${LOGFILE_NAME}"
+
+CRON_STRING="*/30 * * * * /usr/bin/python3 /etc/ookla-speedtest/speedtest.py"
+
+
+echo "Creating Installation Directory at ${INSTALL_DIR} ..." | sudo tee -a "${TMP_LOGFILE}"
+sudo mkdir -p "${INSTALL_DIR}" | sudo tee -a "${TMP_LOGFILE}" &> /dev/null
+
+echo "" | sudo tee -a "${TMP_LOGFILE}" &> /dev/null
+echo "Creating Results Directory at ${RESULT_DIR} ..." | sudo tee -a "${TMP_LOGFILE}"
+sudo mkdir -p $RESULT_DIR | sudo tee -a "${TMP_LOGFILE}" &> /dev/null
+
+echo "" | sudo tee -a "${TMP_LOGFILE}" &> /dev/null
+echo "Creating Logs Directory at ${LOG_DIR} ..." | sudo tee -a "${TMP_LOGFILE}"
+sudo mkdir -p "${LOG_DIR}" | sudo tee -a "${TMP_LOGFILE}" &> /dev/null
+
+echo "" | sudo tee -a "${TMP_LOGFILE}" &> /dev/null
+echo "Moving temporary Logfile to ${LOG_DIR} ..." | sudo tee -a "${TMP_LOGFILE}"
+sudo mv "${TMP_LOGFILE}" $LOGFILE | sudo tee -a $LOGFILE &> /dev/null
+
+echo "" | sudo tee -a $LOGFILE &> /dev/null
+echo "Updating Repositories..." | sudo tee -a $LOGFILE
+sudo apt-get update | sudo tee -a $LOGFILE &> /dev/null
+
+echo "" | sudo tee -a $LOGFILE &> /dev/null
+echo "Updating OS..." | sudo tee -a $LOGFILE
+sudo apt-get upgrade -y | sudo tee -a $LOGFILE &> /dev/null
+
+echo "" | sudo tee -a $LOGFILE &> /dev/null
+echo "Installing needed Utilities..." | sudo tee -a $LOGFILE
+sudo apt-get install apt-transport-https gnupg1 dirmngr lsb-release | sudo tee -a $LOGFILE &> /dev/null
+
+echo "" | sudo tee -a $LOGFILE &> /dev/null
+echo "Installing Ookla Repository Key..." | sudo tee -a $LOGFILE
+curl -L https://packagecloud.io/ookla/speedtest-cli/gpgkey | gpg --dearmor | sudo tee /usr/share/keyrings/speedtestcli-archive-keyring.gpg &> /dev/null
+
+echo "" | sudo tee -a $LOGFILE &> /dev/null
+echo "Adding Ookla Repository to APT Repository Lists..." | sudo tee -a $LOGFILE
+echo "deb [signed-by=/usr/share/keyrings/speedtestcli-archive-keyring.gpg] https://packagecloud.io/ookla/speedtest-cli/debian/ $(lsb_release -cs) main" | sudo tee  /etc/apt/sources.list.d/speedtest.list | sudo tee -a $LOGFILE &> /dev/null
+
+echo "" | sudo tee -a $LOGFILE &> /dev/null
+echo "Updating Repositories again..." | sudo tee -a $LOGFILE
+sudo apt-get update | sudo tee -a $LOGFILE &> /dev/null
+
+echo "" | sudo tee -a $LOGFILE &> /dev/null
+echo "Installing the Speedtest Binary..." | sudo tee -a $LOGFILE
+sudo apt-get install speedtest | sudo tee -a $LOGFILE &> /dev/null
+
+echo "" | sudo tee -a $LOGFILE &> /dev/null
+echo "Launching the initial Speedtest..." | sudo tee -a $LOGFILE
+echo "" | sudo tee -a $LOGFILE
+sudo speedtest --accept-license --accept-gdpr | sudo tee -a $LOGFILE
+
+echo "" | sudo tee -a $LOGFILE &> /dev/null
+echo "Launching the initial Speedtest..." | sudo tee -a $LOGFILE
