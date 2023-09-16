@@ -2,14 +2,14 @@
 
 LOGFILE_NAME="installer_log.txt"
 
-INSTALL_DIR="/etc/ookla-speedtest"
+INSTALL_DIR="/etc/isp-buster"
 RESULT_DIR="${INSTALL_DIR}/results"
 LOG_DIR="${INSTALL_DIR}/logs"
 
 LOGFILE="${LOG_DIR}/${LOGFILE_NAME}"
 TMP_LOGFILE="/home/${USER}/${LOGFILE_NAME}"
 
-CRON_STRING="*/30 * * * * /usr/bin/python3 /etc/ookla-speedtest/speedtest.py"
+CRON_STRING="*/30 * * * * /usr/bin/isp-buster"
 
 
 echo "Creating Installation Directory at ${INSTALL_DIR} ..." | sudo tee -a "${TMP_LOGFILE}"
