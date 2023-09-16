@@ -1,1 +1,4 @@
 #!/bin/bash
+
+#Launch the speedtest.py as sudo so that it can write the .csv Files within the /etc directory.
+sudo python -E /etc/isp-buster/speedtest.py
