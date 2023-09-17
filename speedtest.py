@@ -9,9 +9,9 @@ import time
 # Define the IPv4 to connect to during the Iperf3 Network test and the Server ID to connect to during Speedtest.
 # The Server ID can be found by typing "speedtest -L"
 
-iperf = False
-target_ip = None
-target_id = None
+iperf = False       # Options: True/False ; Set to True if you are able to install an IPerf3 Host on your Firewall
+target_ip = None    # Options: XXX.XXX.XXX.XXX/None ; Set the IPv4 Adress of your Firewall at which the IPerf3 Host is waiting for connections
+target_id = None    # Options: XXXXX/None ; Set the Server ID of a specific Ookla Speedtest Server if you wish to keep the Speedtest Results consistent
 
 
 # Function to extract a value from a string using a regex pattern and set to "N/A" if not found
@@ -19,8 +19,64 @@ def extract_value(pattern, text):
     match = re.search(pattern, text)
     return match.group(1) if match else "N/A"
 
-# Initialize Exception Variable to find out if and Exception occured and log it.
-exception = False
+# Function to write .csv Files
+def write_csvfile(filetype, field_1, field_2, field_3, field_4, field_5, field_6, field_7, field_8, field_9, field_10):
+    date = time.strftime('%d/%m/%y')
+    timestamp = time.strftime('%H:%M')
+
+    if filetype == "LOG":
+        filename = os.path.join(logs_dir, 'isp-buster_logs.csv')
+        fileheader = 'Date,Time,Log Type,Log Description,Log Output\r\n'
+        fileformat = '{},{},{},{},{}\r\n'.format(date, timestamp, field_1, field_2, field_3)
+    elif filetype == "TMPLOG":
+        filename = os.path.join(tmp_logs_dir, 'isp-buster_tmplogs.csv')
+        fileheader = 'Date,Time,Log Type,Log Description,Log Output\r\n'
+        fileformat = '{},{},{},{},{}\r\n'.format(date, timestamp, field_1, field_2, field_3)
+    elif filetype == "IPERF":
+        filename = os.path.join(results_dir, 'isp-buster_iperf.csv')
+        fileheader = 'Date,Time,Local (IPv4),Target (IPv4),Interval (sec),Transfer (MBytes),Bitrate (Mbits/sec),Retries\r\n'
+        fileformat = '{},{},{},{},{},{},{},{}\r\n'.format(date, timestamp, field_1, field_2, field_3, field_4, field_5, field_6)
+    elif filetype == "SPEEDTEST":
+        filename = os.path.join(results_dir, 'isp-buster_speedtest.csv')
+        fileheader = 'Date,Time,Server ID,Ping (ms),Jitter (ms),Download (Mbits/sec),Upload (Mbits/sec)\r\n'
+        fileformat = '{},{},{},{},{},{}\r\n'.format(date, timestamp, field_1, field_2, field_3, field_4, field_5)
+    elif filetype == "COMBINED":
+        filename = os.path.join(results_dir, 'isp-buster_combined.csv')
+        fileheader = 'Date,Time,IPerf Local (IPv4),IPerf Target (IPv4),IPerf Transfer (MBytes),IPerf Bitrate (Mbits/sec),IPerf Retries,Speedtest Server ID,Speedtest Ping (ms),Speedtest Jitter (ms),Speedtest Download (Mbits/sec),Speedtest Upload (Mbits/sec)\r\n'
+        fileformat = '{},{},{},{},{},{},{},{},{},{},{},{}\r\n'.format(date, timestamp, field_1, field_2, field_3, field_4, field_5, field_6, field_7, field_8, field_9, field_10)
+
+    try:
+        logtype = "INFO"
+        logoutput = ""
+        logdescription = f"Successfully wrote to {filename}"
+
+        if not os.path.isfile(filename):
+            with open(filename, 'w') as f:
+                f.write(fileheader)
+        with open(filename, 'a+') as f:
+            f.write(fileformat)
+
+        print(logdescription)
+        return 0, logtype, logdescription, logoutput
+    except Exception as e:
+        logtype = "ERROR"
+        logoutput = e
+        logdescription = f"An Error occurred while writing to {filename}"
+
+        print(f"{logdescription}:")
+        print(logoutput)
+        return 1, logtype, logdescription, logoutput
+
+# Initialize Filetype Variables for writing .csv Files
+filetype_log = "LOG"
+filetype_tmplog = "TMPLOG"
+filetype_iperf = "IPERF"
+filetype_speedtest = "SPEEDTEST"
+filetype_combined = "COMBINED"
+
+# Initialize Temporary Logfile Directory for when the Program is run without sudo and can't write a Logfile into /etc/isp-buster
+user = os.getlogin()
+tmp_logs_dir = f'/home/{user}'
 
 try:
     # Create the results directory if it doesn't exist
@@ -30,25 +86,37 @@ try:
     logs_dir = '/etc/isp-buster/logs'
     os.makedirs(results_dir, exist_ok=True)
 except Exception as e:
-    dir_exc = e
-    dir_exc_desc = "An Error occurred while creating the needed directories"
-    print("An Error occurred while creating the needed directories:")
-    print(e)
-    exception = True
+    logtype = "ERROR"
+    logoutput = e
+    logdescription = "An Error occurred while creating the needed directories"
+
+    print(f"{logdescription}:")
+    print(logoutput)
+
+    returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput)
+
+    if returncode[0] == 1:
+        write_csvfile(filetype_tmplog, logtype, logdescription, logoutput)
 
 
 # Run the IPerf Test and log it into a .csv File if specified in the Settings
 if iperf and target_ip != None:
     try:
         # Run the IPerf test
-        iperf_output = subprocess.Popen('/usr/bin/iperf3 -c ' + target_ip, shell=True, stdout=subprocess.PIPE).stdout.read().decode('utf-8')
+        iperf_output = subprocess.Popen(f'/usr/bin/iperf3 -c {target_ip}', shell=True, stdout=subprocess.PIPE).stdout.read().decode('utf-8')
     except Exception as e:
-        iperf_exc = e
-        iperf_exc_desc = "An Error occurred while running the IPerf3 Network Speedtest"
-        print("An Error occurred while running the IPerf3 Network Speedtest:")
-        print(e)
-        exception = True
+        logtype = "ERROR"
+        logoutput = e
+        logdescription = "An Error occurred while running the IPerf3 Network Speedtest"
         iperf_output = ""
+
+        print(f"{logdescription}:")
+        print(logoutput)
+
+        returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput)
+
+        if returncode[0] == 1:
+            write_csvfile(filetype_tmplog, logtype, logdescription, logoutput)
 
     # Split the IPerf output into lines
     iperf_lines = iperf_output.splitlines()
@@ -89,43 +157,54 @@ if iperf and target_ip != None:
 
         # Check if any of the values couldn't be found so it can be stored at the logfile
         if local_ip == "N/A" or target_ip == "N/A" or interval == "N/A" or transfer == "N/A" or bitrate == "N/A" or retries == "N/A":
-            iperf_val = f"Local IP:{local_ip};Target IP:{target_ip};Interval:{interval}sec;Transfer:{transfer}Mbytes;Bitrate:{bitrate}Mbits/sec;Retries:{retries}"
-            iperf_val_desc = "One or more IPerf values couldn't be found"
-            print("One or more IPerf values couldn't be found:")
-            print(f"Local IP:{local_ip};Target IP:{target_ip};Interval:{interval}sec;Transfer:{transfer}Mbytes;Bitrate:{bitrate}Mbits/sec;Retries:{retries}")
-            exception = True
+            logtype = "WARNING"
+            logoutput = f"Local IP:{local_ip};Target IP:{target_ip};Interval:{interval}sec;Transfer:{transfer}Mbytes;Bitrate:{bitrate}Mbits/sec;Retries:{retries}"
+            logdescription = "One or more IPerf values couldn't be found"
+
+            print(f"{logdescription}:")
+            print(logoutput)
+
+            returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput)
+
+            if returncode[0] == 1:
+                write_csvfile(filetype_tmplog, logtype, logdescription, logoutput)
 
     # Write the IPerf data to the file
-    try:
-        iperf_file = os.path.join(results_dir, 'iperf.csv')
-        if not os.path.isfile(iperf_file):
-            with open(iperf_file, 'w') as f:
-                f.write('Date,Time,Local (IPv4),Target (IPv4),Interval (sec),Transfer (MBytes),Bitrate (Mbits/sec),Retries\r\n')
-        with open(iperf_file, 'a+') as f:
-            f.write('{},{},{},{},{},{},{},{}\r\n'.format(time.strftime('%d/%m/%y'), time.strftime('%H:%M'), local_ip, target_ip, interval, transfer, bitrate, retries))
-    except Exception as e:
-        iperf_file_exc = e
-        iperf_file_exc_desc = "An Error occurred while writing to the iperf.csv File"
-        print("An Error occurred while writing to the iperf.csv File:")
-        print(e)
-        exception = True
+    # CSV File Header: Local (IPv4),Target (IPv4),Interval (sec),Transfer (MBytes),Bitrate (Mbits/sec),Retries
+    # CSV File Vars: local_ip, target_ip, interval, transfer, bitrate, retries
+    returncode = write_csvfile(filetype_iperf, target_ip, interval, transfer, bitrate, retries)
+
+    logtype = returncode[1]
+    logdescription = returncode[2]
+    logoutput = returncode [3]
+
+    returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput)
+
+    if returncode[0] == 1:
+        write_csvfile(filetype_tmplog, logtype, logdescription, logoutput)
 
 
 # Use the right Speedtest switches depending on the given Server ID to connect to. By default it selects the best Server at each Test.
 try:
     if target_id != None:
         # Run the Speedtest with a specific server ID
-        speedtest_output = subprocess.Popen('/usr/bin/speedtest --accept-license --accept-gdpr --server-id=' + target_id, shell=True, stdout=subprocess.PIPE).stdout.read().decode('utf-8')
+        speedtest_output = subprocess.Popen(f'/usr/bin/speedtest --accept-license --accept-gdpr --server-id={target_id}', shell=True, stdout=subprocess.PIPE).stdout.read().decode('utf-8')
     else:
         # Run the Speedtest without a specific server ID
         speedtest_output = subprocess.Popen('/usr/bin/speedtest --accept-license --accept-gdpr', shell=True, stdout=subprocess.PIPE).stdout.read().decode('utf-8')
 except Exception as e:
-    speedt_exc = e
-    speedt_exc_desc = "An Error occurred while running the Speedtest"
-    print("An Error occurred while running the Speedtest:")
-    print(e)
-    exception = True
+    logtype = "ERROR"
+    logoutput = e
+    logdescription = "An Error occurred while running the Speedtest"
     speedtest_output = ""
+
+    print(f"{logdescription}:")
+    print(logoutput)
+
+    returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput)
+
+    if returncode[0] == 1:
+        write_csvfile(filetype_tmplog, logtype, logdescription, logoutput)
 
 # Extract Speedtest values
 server_pattern = r'\(id:\s+(.*?)\)'
@@ -142,43 +221,58 @@ jitter = extract_value(jitter_pattern, speedtest_output)
 
 # Check if any of the values couldn't be found so it can be stored at the logfile
 if server == "N/A" or ping == "N/A" or download == "N/A" or upload == "N/A" or jitter == "N/A":
-    speedt_val = f"Server:{server};Ping:{ping}ms;Jitter:{jitter}ms;Download:{download}Mbits/sec;Upload:{upload}Mbits/sec"
-    speedt_val_desc = "One or more Speedtest values couldn't be found"
-    print("One or more Speedtest values couldn't be found:")
-    print(f"Server:{server};Ping:{ping}ms;Jitter:{jitter}ms;Download:{download}Mbits/sec;Upload{upload}Mbits/sec")
-    exception = True
+    logtype = "WARNING"
+    logoutput = f"Server:{server};Ping:{ping}ms;Jitter:{jitter}ms;Download:{download}Mbits/sec;Upload:{upload}Mbits/sec"
+    logdescription = "One or more Speedtest values couldn't be found"
+
+    print(f"{logdescription}:")
+    print(logoutput)
+
+    returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput)
+
+    if returncode[0] == 1:
+        write_csvfile(filetype_tmplog, logtype, logdescription, logoutput)
 
 # Write the Speedtest data to the file
-try:
-    speedtest_file = os.path.join(results_dir, 'speedtest.csv')
-    if not os.path.isfile(speedtest_file):
-        with open(speedtest_file, 'w') as f:
-            f.write('Date,Time,Server ID,Ping (ms),Jitter (ms),Download (Mbits/sec),Upload (Mbits/sec)\r\n')
-    with open(speedtest_file, 'a+') as f:
-        f.write('{},{},{},{},{},{}\r\n'.format(time.strftime('%d/%m/%y'), time.strftime('%H:%M'), server, ping, jitter, download, upload))
-except Exception as e:
-    speedt_file_exc = e
-    speedt_file_exc_desc = "An Error occurred while writing to the speedtest.csv File"
-    print("An Error occurred while writing to the speedtest.csv File:")
-    print(e)
-    exception = True
+# CSV File Header: Server ID,Ping (ms),Jitter (ms),Download (Mbits/sec),Upload (Mbits/sec)
+# CSV File Vars: server, ping, jitter, download, upload
+returncode = write_csvfile(filetype_speedtest, server, ping, jitter, download, upload)
+
+logtype = returncode[1]
+logdescription = returncode[2]
+logoutput = returncode [3]
+
+returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput)
+
+if returncode[0] == 1:
+    write_csvfile(filetype_tmplog, logtype, logdescription, logoutput)
 
 
 # Write the Combined data to the file
+# CSV File Header: IPerf Local (IPv4),IPerf Target (IPv4),IPerf Transfer (MBytes),IPerf Bitrate (Mbits/sec),IPerf Retries,Speedtest Server ID,Speedtest Ping (ms),Speedtest Jitter (ms),Speedtest Download (Mbits/sec),Speedtest Upload (Mbits/sec)
+# CSV File Vars: local_ip, target_ip, transfer, bitrate, retries, server, ping, jitter, download, upload
 if iperf and target_ip != None:
-    try:
-        combined_file = os.path.join(results_dir, 'combined.csv')
-        if not os.path.isfile(combined_file):
-            with open(combined_file, 'w') as f:
-                f.write('Date,Time,IPerf Local (IPv4),IPerf Target (IPv4),IPerf Transfer (MBytes),IPerf Bitrate (Mbits/sec),IPerf Retries,Speedtest Server ID,Speedtest Ping (ms),Speedtest Jitter (ms),Speedtest Download (Mbits/sec),Speedtest Upload (Mbits/sec)\r\n')
-        with open(combined_file, 'a+') as f:
-            f.write('{},{},{},{},{},{},{},{},{},{},{},{}\r\n'.format(time.strftime('%d/%m/%y'), time.strftime('%H:%M'), local_ip, target_ip, transfer, bitrate, retries, server, ping, jitter, download, upload))
-    except Exception as e:
-        comb_file_exc = e
-        comb_file_exc_desc = "An Error occurred while writing to the combined.csv File"
-        print("An Error occurred while writing to the combined.csv File:")
-        print(e)
-        exception = True
+    returncode = write_csvfile(filetype_combined, local_ip, target_ip, transfer, bitrate, retries, server, ping, jitter, download, upload)
+
+    logtype = returncode[1]
+    logdescription = returncode[2]
+    logoutput = returncode [3]
+
+    returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput)
+
+    if returncode[0] == 1:
+        write_csvfile(filetype_tmplog, logtype, logdescription, logoutput)
 
 
-# Write the Logs into the Logfile
+# Write the Logfile entry for finishing the Speedtest
+logtype = "INFO"
+logoutput = ""
+logdescription = "The Speedtest finished successfully"
+
+print(f"{logdescription}:")
+print(logoutput)
+
+returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput)
+
+if returncode[0] == 1:
+    write_csvfile(filetype_tmplog, logtype, logdescription, logoutput)
