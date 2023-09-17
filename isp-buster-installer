@@ -1,64 +1,478 @@
 #!/bin/bash
 
-LOGFILE_NAME="installer_log.txt"
+# General Directory Declarations
+START_DIR=$PWD
+INSTALL_DIR=/etc/isp-buster
+RESULTS_DIR="${INSTALL_DIR}/results"
+LOGS_DIR="${INSTALL_DIR}/logs"
+BAK_DIR="${INSTALL_DIR}/backup"
+CLONE_DIR="${INSTALL_DIR}/isp-buster"
+SCRIPTS_DIR=/usr/bin/
 
-INSTALL_DIR="/etc/isp-buster"
-RESULT_DIR="${INSTALL_DIR}/results"
-LOG_DIR="${INSTALL_DIR}/logs"
+# Filename Declarations
+PYTHON_FILE="${CLONE_DIR}/speedtest.py"
+ISP_BUSTER_FILE="${CLONE_DIR}/isp-buster"
+INSTALLER_FILE="${CLONE_DIR}/isp-buster-installer"
+UNINSTALLER_FILE="${CLONE_DIR}/isp-buster-uninstaller"
+AUTOINSTALLER_FILE="${CLONE_DIR}/isp-buster-autoinstaller"
+TMP_CRON_FILE="${BAK_DIR}/crontab"
+BAK_CRON_FILE="${BAK_DIR}/crontab.bak"
+LOGFILE="${LOGS_DIR}/isp-buster_installation_log.txt"
+TMP_LOGFILE="/home/${USER}/isp-buster_tmp_installation_log.txt"
+APT_LIST="/etc/apt/sources.list.d/speedtest.list"
 
-LOGFILE="${LOG_DIR}/${LOGFILE_NAME}"
-TMP_LOGFILE="/home/${USER}/${LOGFILE_NAME}"
+# Logtype Declarations
+LOGTYPE_INFO="INFO"
+LOGTYPE_WARNING="WARNING"
+LOGTYPE_ERROR="ERROR"
 
+# Cronstring Declaration
 CRON_STRING="*/30 * * * * /usr/bin/isp-buster"
 
+# Git URL Declarations
+GIT_ISPBUSTER="https://github.com/xXNightstalkerXx/isp-buster.git"
 
-echo "Creating Installation Directory at ${INSTALL_DIR} ..." | sudo tee -a "${TMP_LOGFILE}"
-sudo mkdir -p "${INSTALL_DIR}" | sudo tee -a "${TMP_LOGFILE}" &> /dev/null
+# Color Declarations
+std=$(tput setaf 15)
+red=$(tput setaf 9 bold)
+green=$(tput setaf 10 bold)
+yellow=$(tput setaf 11 bold)
+pink=$(tput setaf 57)
+blue=$(tput setaf 27 bold)
 
-echo "" | sudo tee -a "${TMP_LOGFILE}" &> /dev/null
-echo "Creating Results Directory at ${RESULT_DIR} ..." | sudo tee -a "${TMP_LOGFILE}"
-sudo mkdir -p $RESULT_DIR | sudo tee -a "${TMP_LOGFILE}" &> /dev/null
+# Function Decalarations
+write_logfile () {
+    logtype="$1"
+    logoutput=$(\n"$3")
+    logdescription="$2"
+    date=$(date +"%d/%m/%y")
+    timestamp=$(date +"%H:%M:%S")
 
-echo "" | sudo tee -a "${TMP_LOGFILE}" &> /dev/null
-echo "Creating Logs Directory at ${LOG_DIR} ..." | sudo tee -a "${TMP_LOGFILE}"
-sudo mkdir -p "${LOG_DIR}" | sudo tee -a "${TMP_LOGFILE}" &> /dev/null
+    if ! [ -f "${LOGFILE}" ]
+    then
+        echo "${date},${timestamp},${logtype},${logdescription},${logoutput}" > "${LOGFILE}"
+    else
+        echo "${date},${timestamp},${logtype},${logdescription},${logoutput}" >> "${LOGFILE}"
+    fi
+}
 
-echo "" | sudo tee -a "${TMP_LOGFILE}" &> /dev/null
-echo "Moving temporary Logfile to ${LOG_DIR} ..." | sudo tee -a "${TMP_LOGFILE}"
-sudo mv "${TMP_LOGFILE}" $LOGFILE | sudo tee -a $LOGFILE &> /dev/null
+write_tmp_logfile () {
+    logtype="$1"
+    logoutput=$(\n"$3")
+    logdescription="$2"
+    date=$(date +"%d/%m/%y")
+    timestamp=$(date +"%H:%M:%S")
 
-echo "" | sudo tee -a $LOGFILE &> /dev/null
-echo "Updating Repositories..." | sudo tee -a $LOGFILE
-sudo apt-get update | sudo tee -a $LOGFILE &> /dev/null
+    if ! [ -f "${TMP_LOGFILE}" ]
+    then
+        echo "${date},${timestamp},${logtype},${logdescription},${logoutput}" > "${TMP_LOGFILE}"
+    else
+        echo "${date},${timestamp},${logtype},${logdescription},${logoutput}" >> "${TMP_LOGFILE}"
+    fi
+}
 
-echo "" | sudo tee -a $LOGFILE &> /dev/null
-echo "Updating OS..." | sudo tee -a $LOGFILE
-sudo apt-get upgrade -y | sudo tee -a $LOGFILE &> /dev/null
+# Main Script
+echo ""
+echo ""
+echo "${blue} ___  ________  ________        ________  ___  ___  ________  _________  _______   ________${std}"
+echo "${blue}|\  \|\   ____\|\   __  \      |\   __  \|\  \|\  \|\   ____\|\___   ___|\  ___ \ |\   __  \\${std}"
+echo "${blue}\ \  \ \  \___|\ \  \|\  \     \ \  \|\ /\ \  \\\\\  \ \  \___|\|___ \  \_\ \   __/|\ \  \|\  \\${std}"
+echo "${blue} \ \  \ \_____  \ \   ____\     \ \   __  \ \  \\\\\  \ \_____  \   \ \  \ \ \  \_|/_\ \   _  _\\${std}"
+echo "${blue}  \ \  \|____|\  \ \  \___|      \ \  \|\  \ \  \\\\\  \|____|\  \   \ \  \ \ \  \_|\ \ \  \\\  \|${std}"
+echo "${blue}   \ \__\____\_\  \ \__\          \ \_______\ \_______\____\_\  \   \ \__\ \ \_______\ \__\\\ _\\${std}"
+echo "${blue}    \|__|\_________\|__|           \|_______|\|_______|\_________\   \|__|  \|_______|\|__|\|__|${std}"
+echo "${blue}        \|_________|                                  \|_________|${std}"
+echo "ISP Buster Speedtest Tool by Nightstalker"
+echo ""
+echo ""
+LOGDESC="Checking OS"
+echo "${blue}${LOGDESC}...${std}"
+os_type="$(grep -E '^(NAME)=' /etc/os-release)"
+os_type=${os_type#*=}
 
-echo "" | sudo tee -a $LOGFILE &> /dev/null
-echo "Installing needed Utilities..." | sudo tee -a $LOGFILE
-sudo apt-get install apt-transport-https gnupg1 dirmngr lsb-release | sudo tee -a $LOGFILE &> /dev/null
+if [[ "$os_type" == *"Kali"* ]]
+then
+	INSTALL_OPTIONS=1
+	echo ""
+	echo "$os_type"
+    LOGOUTPUT="${os_type}"
+    write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+elif [[ "$os_type" == *"Raspbian"* ]]
+then
+	if [[ $(cat /boot/issue.txt) == *"stage2"* ]]
+	then
+		INSTALL_OPTIONS=2
+		echo ""
+		echo "$os_type"
+        echo " Lite Version"
+        LOGOUTPUT="${os_type} - Lite Version"
+        write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+	elif [[ $(cat /boot/issue.txt) == *"stage4"* ]]
+	then
+		INSTALL_OPTIONS=3
+		echo ""
+		echo "$os_type"
+		echo " GUI Lite Version"
+        LOGOUTPUT="${os_type} - GUI Lite Version"
+        write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+	elif [[ $(cat /boot/issue.txt) == *"stage5"* ]]
+	then
+		INSTALL_OPTIONS=3
+		echo ""
+		echo "$os_type"
+		echo " GUI Full Version"
+        LOGOUTPUT="${os_type} - GUI Full Version"
+        write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+	else
+		INSTALL_OPTIONS=2
+		echo ""
+		echo "$os_type"
+		echo " Unknown Raspbian"
+		echo " Using Lite Version Install Options!"
+        LOGOUTPUT="${os_type} - Unknown Raspbian"
+        write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+	fi
+else
+	echo ""
+    LOGOUTPUT="Wrong Operating System detected! Aborting the Installation!"
+	echo "${red}${LOGOUTPUT}${std}"
+    write_tmp_logfile "${LOGTYPE_ERROR}" "${LOGDESC}" "${LOGOUTPUT}"
+	sleep 1
+	exit 1
+fi
 
-echo "" | sudo tee -a $LOGFILE &> /dev/null
-echo "Installing Ookla Repository Key..." | sudo tee -a $LOGFILE
-curl -L https://packagecloud.io/ookla/speedtest-cli/gpgkey | gpg --dearmor | sudo tee /usr/share/keyrings/speedtestcli-archive-keyring.gpg &> /dev/null
+echo ""
+sleep 0.5
+LOGOUTPUT="Operating System okay! Continuing the Installation!"
+echo "${blue}${LOGOUTPUT}${std}"
+write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+sleep 1
 
-echo "" | sudo tee -a $LOGFILE &> /dev/null
-echo "Adding Ookla Repository to APT Repository Lists..." | sudo tee -a $LOGFILE
-echo "deb [signed-by=/usr/share/keyrings/speedtestcli-archive-keyring.gpg] https://packagecloud.io/ookla/speedtest-cli/debian/ $(lsb_release -cs) main" | sudo tee  /etc/apt/sources.list.d/speedtest.list | sudo tee -a $LOGFILE &> /dev/null
+echo ""
+echo ""
+LOGDESC="Updating Repository List"
+echo "${blue}${LOGDESC}...${std}"
+echo ""
+LOGOUTPUT=$(sudo apt-get update)
+echo "${LOGOUTPUT}"
+write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT="Repository List updated! Continuing Installation!"
+echo "${blue}${LOGOUTPUT}${std}"
+write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+sleep 1
 
-echo "" | sudo tee -a $LOGFILE &> /dev/null
-echo "Updating Repositories again..." | sudo tee -a $LOGFILE
-sudo apt-get update | sudo tee -a $LOGFILE &> /dev/null
+echo ""
+echo ""
+LOGDESC="Update OS"
+echo "${green}It is highly recommended to update your OS before Installation!${std}"
+echo "${green}Do you want to update your OS?${std}"
+read -r -p "Yes (y)/ No (n): " n;
 
-echo "" | sudo tee -a $LOGFILE &> /dev/null
-echo "Installing the Speedtest Binary..." | sudo tee -a $LOGFILE
-sudo apt-get install speedtest | sudo tee -a $LOGFILE &> /dev/null
+while ! [[ "$n" =~ ^(y|n)$ ]];
+do
+	echo ""
+	echo "${red}Wrong Input! Please type 'y' for 'YES' or 'n' for 'NO'!${std}"
+	read -r -p "Yes (y)/ No (n): " n;
+done
 
-echo "" | sudo tee -a $LOGFILE &> /dev/null
-echo "Launching the initial Speedtest..." | sudo tee -a $LOGFILE
-echo "" | sudo tee -a $LOGFILE
-sudo speedtest --accept-license --accept-gdpr | sudo tee -a $LOGFILE
+if [[ "$n" =~ ^(y)$ ]];
+then
+	echo ""
+    LOGOUTPUT="Updating the OS now"
+	echo "${blue}${LOGDESC}...${std}"
+    write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+	echo ""
+	LOGOUTPUT=$(sudo apt-get upgrade -y)
+    echo "${LOGOUTPUT}"
+    write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+	echo ""
+    sleep 0.5
+    LOGOUTPUT="Operating System updated successfully! Continuing the Installation!"
+	echo "${blue}${LOGOUTPUT}${std}"
+    write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+	sleep 1
+else
+	echo ""
+    LOGOUTPUT="Not updating your OS! Installation might fail!"
+	echo "${red}${LOGOUTPUT}${std}"
+    write_tmp_logfile "${LOGTYPE_WARNING}" "${LOGDESC}" "${LOGOUTPUT}"
+	sleep 1
+fi
 
-echo "" | sudo tee -a $LOGFILE &> /dev/null
-echo "Launching the initial Speedtest..." | sudo tee -a $LOGFILE
+echo ""
+echo ""
+LOGDESC="Checking Directories"
+echo "${blue}${LOGDESC}...${std}"
+echo ""
+
+LOGOUTPUT="Checking ${INSTALL_DIR} Directory"
+echo "${blue}${LOGOUTPUT}...${std}"
+write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+
+if [ -d "${INSTALL_DIR}" ]
+then
+    sleep 0.5
+    LOGOUTPUT="${INSTALL_DIR} Directory exists. Not Creating this Directory!"
+	echo "${green}${LOGOUTPUT}${std}"
+    write_tmp_logfile "${LOGTYPE_WARNING}" "${LOGDESC}" "${LOGOUTPUT}"
+else
+    sleep 0.5
+    LOGOUTPUT="${INSTALL_DIR} Directory doesn't exist. Creating the Directory!"
+	echo "${blue}${LOGOUTPUT}${std}"
+	sudo mkdir -p "${INSTALL_DIR}"
+    write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+fi
+
+sleep 0.5
+LOGOUTPUT="Checking ${RESULTS_DIR} Directory"
+echo "${blue}${LOGOUTPUT}...${std}"
+write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+
+if [ -d "${RESULTS_DIR}" ]
+then
+	sleep 0.5
+    LOGOUTPUT="${RESULTS_DIR} Directory exists. Not Creating this Directory!"
+	echo "${green}${LOGOUTPUT}${std}"
+    write_tmp_logfile "${LOGTYPE_WARNING}" "${LOGDESC}" "${LOGOUTPUT}"
+else
+    sleep 0.5
+    LOGOUTPUT="${RESULTS_DIR} Directory doesn't exist. Creating the Directory!"
+	echo "${blue}${LOGOUTPUT}${std}"
+	sudo mkdir -p "${RESULTS_DIR}"
+    write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+fi
+
+sleep 0.5
+LOGOUTPUT="Checking ${LOGS_DIR} Directory"
+echo "${blue}${LOGOUTPUT}...${std}"
+write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+
+if [ -d "${LOGS_DIR}" ]
+then
+	sleep 0.5
+    LOGOUTPUT="${LOGS_DIR} Directory exists. Not Creating this Directory!"
+	echo "${green}${LOGOUTPUT}${std}"
+    write_tmp_logfile "${LOGTYPE_WARNING}" "${LOGDESC}" "${LOGOUTPUT}"
+else
+	sleep 0.5
+    LOGOUTPUT="${LOGS_DIR} Directory doesn't exist. Creating the Directory!"
+	echo "${blue}${LOGOUTPUT}${std}"
+	sudo mkdir -p "${LOGS_DIR}"
+    write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+fi
+
+sleep 0.5
+LOGOUTPUT="Checking ${BAK_DIR} Directory"
+echo "${blue}${LOGOUTPUT}...${std}"
+write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+
+if [ -d "${BAK_DIR}" ]
+then
+	sleep 0.5
+    LOGOUTPUT="${BAK_DIR} Directory exists. Not Creating this Directory!"
+	echo "${green}${LOGOUTPUT}${std}"
+    write_tmp_logfile "${LOGTYPE_WARNING}" "${LOGDESC}" "${LOGOUTPUT}"
+else
+	sleep 0.5
+    LOGOUTPUT="${BAK_DIR} Directory doesn't exist. Creating the Directory!"
+	echo "${blue}${LOGOUTPUT}${std}"
+	sudo mkdir -p "${BAK_DIR}"
+    write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+fi
+
+sleep 0.5
+echo ""
+LOGOUTPUT="Directories are okay! Continuing the Installation!"
+echo "${blue}${LOGOUTPUT}${std}"
+write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+sleep 1
+
+echo ""
+echo ""
+LOGDESC="Moving Temporary Logfile"
+LOGOUTPUT="Moving temporary Logfile to ${LOGS_DIR}"
+echo "${blue}${LOGOUTPUT}...${std}"
+write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sudo mv "${TMP_LOGFILE}" "${LOGFILE}"
+sleep 0.5
+LOGOUTPUT="Logfile moved successfully! Continuing Installation!"
+echo "${blue}${LOGOUTPUT}${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+sleep 1
+
+echo ""
+echo ""
+LOGDESC="Installing Git"
+echo "${blue}${LOGDESC}...${std}"
+echo ""
+LOGOUTPUT="Checking if Git is already installed"
+echo "${blue}${LOGOUTPUT}...${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+
+if hash git 2>/dev/null
+then
+    sleep 0.5
+    LOGOUTPUT="Git is already installed!"
+	echo "${blue}${LOGOUTPUT}${std}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+else
+    sleep 0.5
+    LOGOUTPUT="Git is not installed. Installing Git now!"
+	echo "${red}${LOGOUTPUT}${std}"
+    write_logfile "${LOGTYPE_WARNING}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
+	LOGOUTPUT=$(sudo apt-get install git -y)
+    echo "${LOGOUTPUT}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+fi
+
+sleep 0.5
+echo ""
+LOGOUTPUT="Git is installed and okay! Continuing Installation!"
+echo "${blue}${LOGOUTPUT}${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+sleep 1
+
+echo ""
+echo ""
+LOGDESC="Installing Utilities"
+echo "${blue}${LOGDESC}...${std}"
+echo ""
+LOGOUTPUT=$(sudo apt-get install -y apt-transport-https gnupg1 dirmngr lsb-release)
+echo "${LOGOUTPUT}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT="Utilities installed successfully! Continuing Installation!"
+echo "${blue}${LOGOUTPUT}${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+sleep 1
+
+echo ""
+echo ""
+LOGDESC="Installing Ookla Repository Key"
+echo "${blue}${LOGDESC}...${std}"
+echo ""
+LOGOUTPUT=$(curl -L https://packagecloud.io/ookla/speedtest-cli/gpgkey | gpg --dearmor | sudo tee /usr/share/keyrings/speedtestcli-archive-keyring.gpg 1> /dev/null)
+echo "${LOGOUTPUT}"
+write_logfile "${LOGTYPE_WARNING}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT="Ookla Repository Key installed successfully! Continuing Installation!"
+echo "${blue}${LOGOUTPUT}${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+sleep 1
+
+echo ""
+echo ""
+LOGDESC="Adding Ookla Repository to APT Repository Lists"
+echo "${blue}${LOGDESC}...${std}"
+echo ""
+LOGOUTPUT=$(echo "deb [signed-by=/usr/share/keyrings/speedtestcli-archive-keyring.gpg] https://packagecloud.io/ookla/speedtest-cli/debian/ $(lsb_release -cs) main" | sudo tee ${APT_LIST} 1> /dev/null)
+echo "${LOGOUTPUT}"
+write_logfile "${LOGTYPE_WARNING}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT="Ookla Repository successfully added to APT Repository Lists! Continuing Installation!"
+echo "${blue}${LOGOUTPUT}${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+sleep 1
+
+echo ""
+echo ""
+LOGDESC="Updating Repository List again"
+echo "${blue}${LOGDESC}...${std}"
+echo ""
+LOGOUTPUT=$(sudo apt-get update)
+echo "${LOGOUTPUT}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT="Repository List updated! Continuing Installation!"
+echo "${blue}${LOGOUTPUT}${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+sleep 1
+
+echo ""
+echo ""
+LOGDESC="Installing the Speedtest Binary"
+echo "${blue}${LOGDESC}...${std}"
+echo ""
+LOGOUTPUT=$(sudo apt-get install -y speedtest)
+echo "${LOGOUTPUT}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT="Speedtest Binaries installed successfully! Continuing Installation!"
+echo "${blue}${LOGOUTPUT}${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+sleep 1
+
+echo ""
+echo ""
+LOGDESC="Launching the initial Speedtest"
+echo "${blue}${LOGDESC}...${std}"
+echo ""
+LOGOUTPUT=$(sudo speedtest --accept-license --accept-gdpr)
+echo "${LOGOUTPUT}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT="Speedtest tested successfully! Continuing Installation!"
+echo "${blue}${LOGOUTPUT}${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+sleep 1
+
+echo ""
+echo ""
+LOGDESC="Creating Backup of Crontab"
+echo "${blue}${LOGDESC}...${std}"
+echo ""
+LOGOUTPUT=$(sudo crontab -l | sudo tee ${BAK_CRON_FILE})
+echo "${LOGOUTPUT}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT="Crontab successfully backed up! Continuing Installation!"
+echo "${blue}${LOGOUTPUT}${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+sleep 1
+
+echo ""
+echo ""
+LOGDESC="Downloading ISP-Buster Github Repository"
+echo "${blue}${LOGDESC}...${std}"
+echo ""
+LOGOUTPUT="Changing Directory to ${INSTALL_DIR}"
+echo "${blue}${LOGOUTPUT}...${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT=$(cd "${INSTALL_DIR}")
+echo "${LOGOUTPUT}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT="Downloading Repository now"
+echo "${blue}${LOGOUTPUT}...${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT=$(sudo git clone ${GIT_ISPBUSTER})
+echo "${blue}${LOGOUTPUT}...${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT=$(sudo crontab -l | sudo tee ${BAK_CRON_FILE})
+echo "${LOGOUTPUT}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT="Crontab successfully backed up! Continuing Installation!"
+echo "${blue}${LOGOUTPUT}${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+sleep 1
