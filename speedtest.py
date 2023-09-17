@@ -23,15 +23,16 @@ def extract_value(pattern, text):
 def write_csvfile(filetype, field_1, field_2, field_3, field_4, field_5, field_6, field_7, field_8, field_9, field_10):
     date = time.strftime('%d/%m/%y')
     timestamp = time.strftime('%H:%M')
+    timestamp_log = time.strftime('%H:%M:%S')
 
     if filetype == "LOG":
         filename = os.path.join(logs_dir, 'isp-buster_logs.csv')
         fileheader = 'Date,Time,Log Type,Log Description,Log Output\r\n'
-        fileformat = '{},{},{},{},{}\r\n'.format(date, timestamp, field_1, field_2, field_3)
+        fileformat = '{},{},{},{},{}\r\n'.format(date, timestamp_log, field_1, field_2, field_3)
     elif filetype == "TMPLOG":
         filename = os.path.join(tmp_logs_dir, 'isp-buster_tmplogs.csv')
         fileheader = 'Date,Time,Log Type,Log Description,Log Output\r\n'
-        fileformat = '{},{},{},{},{}\r\n'.format(date, timestamp, field_1, field_2, field_3)
+        fileformat = '{},{},{},{},{}\r\n'.format(date, timestamp_log, field_1, field_2, field_3)
     elif filetype == "IPERF":
         filename = os.path.join(results_dir, 'isp-buster_iperf.csv')
         fileheader = 'Date,Time,Local (IPv4),Target (IPv4),Interval (sec),Transfer (MBytes),Bitrate (Mbits/sec),Retries\r\n'
