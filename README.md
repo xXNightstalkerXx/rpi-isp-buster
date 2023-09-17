@@ -42,11 +42,13 @@ The Installer does the rest of the Job for you now.
 # HOW TO USE
 
     isp-buster
-Launches the speedtest.py python program manually which executes the speedtests and logs it into a .csv File.</br>
+Launches the speedtest.py python program manually which executes the speedtests and logs them into .csv Files.</br>
 The .csv Files are located at /etc/isp-buster/results/ and there are three .csv Files created:
-   - "combined.csv" which includes Speedtest Results from IPerf3 and Speedtest-CLI if IPerf is not disabled
-   - "speedtest.csv" which includes Speedtest Results just from Speedtest-CLI
-   - "iperf.csv" which includes Speedtest Results just from IPerf3 if IPerf is not disabled
+   - "isp-buster_combined.csv" which includes Speedtest Results from IPerf3 and Speedtest-CLI if IPerf is not disabled
+   - "isp-buster_speedtest.csv" which includes Speedtest Results just from Speedtest-CLI
+   - "isp-buster_iperf.csv" which includes Speedtest Results just from IPerf3 if IPerf is not disabled
+
+There are also logfiles created as .csv Files at /etc/isp-buster/logs/ .</br>
 </br>
 
     isp-buster-uninstaller
