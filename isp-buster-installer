@@ -44,7 +44,7 @@ blue=$(tput setaf 27 bold)
 # Function Decalarations
 write_logfile () {
     logtype="$1"
-    logoutput=$(\n"$3")
+    logoutput=$("\n$3")
     logdescription="$2"
     date=$(date +"%d/%m/%y")
     timestamp=$(date +"%H:%M:%S")
@@ -59,7 +59,7 @@ write_logfile () {
 
 write_tmp_logfile () {
     logtype="$1"
-    logoutput=$(\n"$3")
+    logoutput=$("\n$3")
     logdescription="$2"
     date=$(date +"%d/%m/%y")
     timestamp=$(date +"%H:%M:%S")
