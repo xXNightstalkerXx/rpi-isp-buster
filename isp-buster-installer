@@ -10,6 +10,7 @@ CLONE_DIR="${INSTALL_DIR}/isp-buster"
 SCRIPTS_DIR=/usr/bin/
 
 # Filename Declarations
+MY_PATH="${START_DIR}/isp-buster-installer"
 PYTHON_FILE="${CLONE_DIR}/speedtest.py"
 ISP_BUSTER_FILE="${CLONE_DIR}/isp-buster"
 INSTALLER_FILE="${CLONE_DIR}/isp-buster-installer"
@@ -463,16 +464,134 @@ write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 echo ""
 sleep 0.5
 LOGOUTPUT=$(sudo git clone ${GIT_ISPBUSTER})
-echo "${blue}${LOGOUTPUT}...${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-echo ""
-sleep 0.5
-LOGOUTPUT=$(sudo crontab -l | sudo tee ${BAK_CRON_FILE})
 echo "${LOGOUTPUT}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 echo ""
 sleep 0.5
-LOGOUTPUT="Crontab successfully backed up! Continuing Installation!"
+LOGOUTPUT="Repository successfully downloaded! Continuing Installation!"
+echo "${blue}${LOGOUTPUT}${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+sleep 1
+
+echo ""
+echo ""
+LOGDESC="Making Scripts executable"
+echo "${blue}${LOGDESC}...${std}"
+echo ""
+LOGOUTPUT=$(sudo chmod 0755 ${PYTHON_FILE})
+LOGOUTPUT="sudo chmod 0755 ${PYTHON_FILE};\n${LOGOUTPUT}"
+echo "${LOGOUTPUT}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT=$(sudo chmod 0755 ${ISP_BUSTER_FILE})
+LOGOUTPUT="sudo chmod 0755 ${ISP_BUSTER_FILE};\n${LOGOUTPUT}"
+echo "${LOGOUTPUT}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT=$(sudo chmod 0755 ${INSTALLER_FILE})
+LOGOUTPUT="sudo chmod 0755 ${INSTALLER_FILE};\n${LOGOUTPUT}"
+echo "${LOGOUTPUT}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT=$(sudo chmod 0755 ${UNINSTALLER_FILE})
+LOGOUTPUT="sudo chmod 0755 ${UNINSTALLER_FILE};\n${LOGOUTPUT}"
+echo "${LOGOUTPUT}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT=$(sudo chmod 0755 ${AUTOINSTALLER_FILE})
+LOGOUTPUT="sudo chmod 0755 ${AUTOINSTALLER_FILE};\n${LOGOUTPUT}"
+echo "${LOGOUTPUT}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT="Successfully made Scripts executable! Continuing Installation!"
+echo "${blue}${LOGOUTPUT}${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+sleep 1
+
+echo ""
+echo ""
+LOGDESC="Copying Scripts to ${SCRIPTS_DIR}"
+echo "${blue}${LOGDESC}...${std}"
+echo ""
+LOGOUTPUT=$(sudo cp ${ISP_BUSTER_FILE} ${SCRIPTS_DIR})
+LOGOUTPUT="sudo cp ${ISP_BUSTER_FILE} ${SCRIPTS_DIR};\n${LOGOUTPUT}"
+echo "${LOGOUTPUT}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT=$(sudo cp ${UNINSTALLER_FILE} ${SCRIPTS_DIR})
+LOGOUTPUT="sudo cp ${UNINSTALLER_FILE} ${SCRIPTS_DIR};\n${LOGOUTPUT}"
+echo "${LOGOUTPUT}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT="Successfully copied Scripts to ${SCRIPTS_DIR}! Continuing Installation!"
+echo "${blue}${LOGOUTPUT}${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+sleep 1
+
+
+
+
+
+
+
+
+echo ""
+echo ""
+LOGDESC="Creating Cronjob"
+echo "${blue}${LOGDESC}...${std}"
+echo ""
+LOGOUTPUT="Copying backup File"
+echo "${blue}${LOGOUTPUT}...${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT=$(sudo cp ${BAK_CRON_FILE} ${TMP_CRON_FILE})
+LOGOUTPUT="sudo cp ${BAK_CRON_FILE} ${TMP_CRON_FILE};\n${LOGOUTPUT}"
+echo "${LOGOUTPUT}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT="Inserting Cronjob into File"
+echo "${blue}${LOGOUTPUT}...${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT=$(echo "${CRON_STRING}" | sudo tee -a ${TMP_CRON_FILE})
+LOGOUTPUT="echo '${CRON_STRING}' | sudo tee -a ${TMP_CRON_FILE};\n${LOGOUTPUT}"
+echo "${LOGOUTPUT}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT="Updating crontab with the File"
+echo "${blue}${LOGOUTPUT}...${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT=$(sudo crontab ${TMP_CRON_FILE})
+LOGOUTPUT="sudo crontab ${TMP_CRON_FILE};\n${LOGOUTPUT}"
+echo "${LOGOUTPUT}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT="Removing Temporary File"
+echo "${blue}${LOGOUTPUT}...${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT=$(sudo rm ${TMP_CRON_FILE})
+LOGOUTPUT="sudo rm ${TMP_CRON_FILE};\n${LOGOUTPUT}"
+echo "${LOGOUTPUT}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT="Successfully created Cronjob! Continuing Installation!"
 echo "${blue}${LOGOUTPUT}${std}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 sleep 1
