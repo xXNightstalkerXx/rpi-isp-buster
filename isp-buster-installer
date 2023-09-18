@@ -44,31 +44,31 @@ blue=$(tput setaf 27 bold)
 # Function Decalarations
 write_logfile () {
     logtype="$1"
-    logoutput=$("\n$3")
+    logoutput="\n\n${3}"
     logdescription="$2"
     date=$(date +"%d/%m/%y")
     timestamp=$(date +"%H:%M:%S")
 
     if ! [ -f "${LOGFILE}" ]
     then
-        echo "${date},${timestamp},${logtype},${logdescription},${logoutput}" > "${LOGFILE}"
+        echo -E "${date},${timestamp},${logtype},${logdescription},${logoutput}" > "${LOGFILE}"
     else
-        echo "${date},${timestamp},${logtype},${logdescription},${logoutput}" >> "${LOGFILE}"
+        echo -E "${date},${timestamp},${logtype},${logdescription},${logoutput}" >> "${LOGFILE}"
     fi
 }
 
 write_tmp_logfile () {
     logtype="$1"
-    logoutput=$("\n$3")
+    logoutput="\n\n${3}"
     logdescription="$2"
     date=$(date +"%d/%m/%y")
     timestamp=$(date +"%H:%M:%S")
 
     if ! [ -f "${TMP_LOGFILE}" ]
     then
-        echo "${date},${timestamp},${logtype},${logdescription},${logoutput}" > "${TMP_LOGFILE}"
+        echo -E "${date},${timestamp},${logtype},${logdescription},${logoutput}" > "${TMP_LOGFILE}"
     else
-        echo "${date},${timestamp},${logtype},${logdescription},${logoutput}" >> "${TMP_LOGFILE}"
+        echo -E "${date},${timestamp},${logtype},${logdescription},${logoutput}" >> "${TMP_LOGFILE}"
     fi
 }
 
@@ -417,28 +417,12 @@ echo ""
 echo ""
 LOGDESC="Launching the initial Speedtest"
 echo "${blue}${LOGDESC}...${std}"
-echo ""
 LOGOUTPUT=$(sudo speedtest --accept-license --accept-gdpr)
 echo "${LOGOUTPUT}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 echo ""
 sleep 0.5
 LOGOUTPUT="Speedtest tested successfully! Continuing Installation!"
-echo "${blue}${LOGOUTPUT}${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-sleep 1
-
-echo ""
-echo ""
-LOGDESC="Creating Backup of Crontab"
-echo "${blue}${LOGDESC}...${std}"
-echo ""
-LOGOUTPUT=$(sudo crontab -l | sudo tee ${BAK_CRON_FILE})
-echo "${LOGOUTPUT}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-echo ""
-sleep 0.5
-LOGOUTPUT="Crontab successfully backed up! Continuing Installation!"
 echo "${blue}${LOGOUTPUT}${std}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 sleep 1
@@ -454,7 +438,8 @@ write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 echo ""
 sleep 0.5
 LOGOUTPUT=$(cd "${INSTALL_DIR}")
-echo "${LOGOUTPUT}"
+echo "cd ${INSTALL_DIR}; ${LOGOUTPUT}"
+cd "${INSTALL_DIR}" &> /dev/null
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 echo ""
 sleep 0.5
@@ -479,31 +464,27 @@ LOGDESC="Making Scripts executable"
 echo "${blue}${LOGDESC}...${std}"
 echo ""
 LOGOUTPUT=$(sudo chmod 0755 ${PYTHON_FILE})
-LOGOUTPUT="sudo chmod 0755 ${PYTHON_FILE};\n${LOGOUTPUT}"
+LOGOUTPUT="sudo chmod 0755 ${PYTHON_FILE}; ${LOGOUTPUT}"
 echo "${LOGOUTPUT}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-echo ""
 sleep 0.5
 LOGOUTPUT=$(sudo chmod 0755 ${ISP_BUSTER_FILE})
-LOGOUTPUT="sudo chmod 0755 ${ISP_BUSTER_FILE};\n${LOGOUTPUT}"
+LOGOUTPUT="sudo chmod 0755 ${ISP_BUSTER_FILE}; ${LOGOUTPUT}"
 echo "${LOGOUTPUT}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-echo ""
 sleep 0.5
 LOGOUTPUT=$(sudo chmod 0755 ${INSTALLER_FILE})
-LOGOUTPUT="sudo chmod 0755 ${INSTALLER_FILE};\n${LOGOUTPUT}"
+LOGOUTPUT="sudo chmod 0755 ${INSTALLER_FILE}; ${LOGOUTPUT}"
 echo "${LOGOUTPUT}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-echo ""
 sleep 0.5
 LOGOUTPUT=$(sudo chmod 0755 ${UNINSTALLER_FILE})
-LOGOUTPUT="sudo chmod 0755 ${UNINSTALLER_FILE};\n${LOGOUTPUT}"
+LOGOUTPUT="sudo chmod 0755 ${UNINSTALLER_FILE}; ${LOGOUTPUT}"
 echo "${LOGOUTPUT}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-echo ""
 sleep 0.5
 LOGOUTPUT=$(sudo chmod 0755 ${AUTOINSTALLER_FILE})
-LOGOUTPUT="sudo chmod 0755 ${AUTOINSTALLER_FILE};\n${LOGOUTPUT}"
+LOGOUTPUT="sudo chmod 0755 ${AUTOINSTALLER_FILE}; ${LOGOUTPUT}"
 echo "${LOGOUTPUT}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 echo ""
@@ -519,13 +500,12 @@ LOGDESC="Copying Scripts to ${SCRIPTS_DIR}"
 echo "${blue}${LOGDESC}...${std}"
 echo ""
 LOGOUTPUT=$(sudo cp ${ISP_BUSTER_FILE} ${SCRIPTS_DIR})
-LOGOUTPUT="sudo cp ${ISP_BUSTER_FILE} ${SCRIPTS_DIR};\n${LOGOUTPUT}"
+LOGOUTPUT="sudo cp ${ISP_BUSTER_FILE} ${SCRIPTS_DIR}; ${LOGOUTPUT}"
 echo "${LOGOUTPUT}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-echo ""
 sleep 0.5
 LOGOUTPUT=$(sudo cp ${UNINSTALLER_FILE} ${SCRIPTS_DIR})
-LOGOUTPUT="sudo cp ${UNINSTALLER_FILE} ${SCRIPTS_DIR};\n${LOGOUTPUT}"
+LOGOUTPUT="sudo cp ${UNINSTALLER_FILE} ${SCRIPTS_DIR}; ${LOGOUTPUT}"
 echo "${LOGOUTPUT}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 echo ""
@@ -569,6 +549,58 @@ sleep 1
 # done
 
 
+# echo ""
+# echo ""
+# LOGDESC="Creating Backup of Crontab"
+# echo "${blue}${LOGDESC}...${std}"
+# echo ""
+# LOGOUTPUT="Checking if there already is a Crontab"
+# echo "${blue}${LOGOUTPUT}...${std}"
+# write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+# echo ""
+# sleep 0.5
+# LOGOUTPUT=$(sudo crontab -u root -l 2>&1)
+# echo "${LOGOUTPUT}"
+# write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+# echo ""
+# sleep 0.5
+# if [[ "${LOGOUTPUT}" = "no crontab for root" ]]
+# then
+#     LOGOUTPUT="There's no Crontab! Creating one now!"
+#     echo "${blue}${LOGOUTPUT}${std}"
+#     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+#     echo ""
+#     sleep 0.5
+#     LOGOUTPUT=$(sudo crontab -u root -e 2>&1)
+#     echo "${LOGOUTPUT}"
+#     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+#     echo ""
+#     sleep 0.5
+#     LOGOUTPUT="Checking again if there's a Crontab now"
+#     echo "${blue}${LOGOUTPUT}...${std}"
+#     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+#     echo ""
+#     sleep 0.5
+#     LOGOUTPUT=$(sudo crontab -u root -l 2>&1)
+#     echo "${LOGOUTPUT}"
+#     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+#     echo ""
+#     sleep 0.5
+# fi
+# LOGOUTPUT="Creating a backup of the Crontab now"
+# echo "${blue}${LOGOUTPUT}...${std}"
+# write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+# echo ""
+# sleep 0.5
+# LOGOUTPUT=$(sudo crontab -u root -l | sudo tee "${BAK_CRON_FILE}" 2>&1)
+# echo "${LOGOUTPUT}"
+# write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+# echo ""
+# sleep 0.5
+# LOGOUTPUT="Crontab successfully backed up! Continuing Installation!"
+# echo "${blue}${LOGOUTPUT}${std}"
+# write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+# sleep 1
 
 # echo ""
 # echo ""
