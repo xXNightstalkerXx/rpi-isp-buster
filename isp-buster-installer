@@ -538,60 +538,88 @@ sleep 1
 
 
 
+# echo "Code needed here to get User Input on Python Settings"
+# results=$(ls)
+# printf "%s   %s   %s\n" "Number" "Server ID" "Server Name"
+# n=1
+# for f in ${results}
+# do
+#        spaces_1=4
+#        spaces_2=7
+#        number="${n}."
+#        number_length=${#number}
+#        id=9563
+#        id=$((id + n))
+#        id_length=${#id}
+
+#         while [[ $number_length -lt $spaces_1 ]]
+#         do
+#                 number="${number} "
+#                 number_length=${#number}
+#         done
+#         while [[ $id_length -lt $spaces_2 ]]
+#         do
+#                 id=" $id"
+#                 id_length=${#id}
+#         done
+
+#         printf " %s   %s      %s\n" "${number}" "${id}" "${f}"
+#         files[n]=${d}
+#         ((n++))
+# done
 
 
 
-
-echo ""
-echo ""
-LOGDESC="Creating Cronjob"
-echo "${blue}${LOGDESC}...${std}"
-echo ""
-LOGOUTPUT="Copying backup File"
-echo "${blue}${LOGOUTPUT}...${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-echo ""
-sleep 0.5
-LOGOUTPUT=$(sudo cp ${BAK_CRON_FILE} ${TMP_CRON_FILE})
-LOGOUTPUT="sudo cp ${BAK_CRON_FILE} ${TMP_CRON_FILE};\n${LOGOUTPUT}"
-echo "${LOGOUTPUT}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-echo ""
-sleep 0.5
-LOGOUTPUT="Inserting Cronjob into File"
-echo "${blue}${LOGOUTPUT}...${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-echo ""
-sleep 0.5
-LOGOUTPUT=$(echo "${CRON_STRING}" | sudo tee -a ${TMP_CRON_FILE})
-LOGOUTPUT="echo '${CRON_STRING}' | sudo tee -a ${TMP_CRON_FILE};\n${LOGOUTPUT}"
-echo "${LOGOUTPUT}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-echo ""
-sleep 0.5
-LOGOUTPUT="Updating crontab with the File"
-echo "${blue}${LOGOUTPUT}...${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-echo ""
-sleep 0.5
-LOGOUTPUT=$(sudo crontab ${TMP_CRON_FILE})
-LOGOUTPUT="sudo crontab ${TMP_CRON_FILE};\n${LOGOUTPUT}"
-echo "${LOGOUTPUT}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-echo ""
-sleep 0.5
-LOGOUTPUT="Removing Temporary File"
-echo "${blue}${LOGOUTPUT}...${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-echo ""
-sleep 0.5
-LOGOUTPUT=$(sudo rm ${TMP_CRON_FILE})
-LOGOUTPUT="sudo rm ${TMP_CRON_FILE};\n${LOGOUTPUT}"
-echo "${LOGOUTPUT}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-echo ""
-sleep 0.5
-LOGOUTPUT="Successfully created Cronjob! Continuing Installation!"
-echo "${blue}${LOGOUTPUT}${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-sleep 1
+# echo ""
+# echo ""
+# LOGDESC="Creating Cronjob"
+# echo "${blue}${LOGDESC}...${std}"
+# echo ""
+# LOGOUTPUT="Copying backup File"
+# echo "${blue}${LOGOUTPUT}...${std}"
+# write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+# echo ""
+# sleep 0.5
+# LOGOUTPUT=$(sudo cp ${BAK_CRON_FILE} ${TMP_CRON_FILE})
+# LOGOUTPUT="sudo cp ${BAK_CRON_FILE} ${TMP_CRON_FILE};\n${LOGOUTPUT}"
+# echo "${LOGOUTPUT}"
+# write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+# echo ""
+# sleep 0.5
+# LOGOUTPUT="Inserting Cronjob into File"
+# echo "${blue}${LOGOUTPUT}...${std}"
+# write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+# echo ""
+# sleep 0.5
+# LOGOUTPUT=$(echo "${CRON_STRING}" | sudo tee -a ${TMP_CRON_FILE})
+# LOGOUTPUT="echo '${CRON_STRING}' | sudo tee -a ${TMP_CRON_FILE};\n${LOGOUTPUT}"
+# echo "${LOGOUTPUT}"
+# write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+# echo ""
+# sleep 0.5
+# LOGOUTPUT="Updating crontab with the File"
+# echo "${blue}${LOGOUTPUT}...${std}"
+# write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+# echo ""
+# sleep 0.5
+# LOGOUTPUT=$(sudo crontab ${TMP_CRON_FILE})
+# LOGOUTPUT="sudo crontab ${TMP_CRON_FILE};\n${LOGOUTPUT}"
+# echo "${LOGOUTPUT}"
+# write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+# echo ""
+# sleep 0.5
+# LOGOUTPUT="Removing Temporary File"
+# echo "${blue}${LOGOUTPUT}...${std}"
+# write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+# echo ""
+# sleep 0.5
+# LOGOUTPUT=$(sudo rm ${TMP_CRON_FILE})
+# LOGOUTPUT="sudo rm ${TMP_CRON_FILE};\n${LOGOUTPUT}"
+# echo "${LOGOUTPUT}"
+# write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+# echo ""
+# sleep 0.5
+# LOGOUTPUT="Successfully created Cronjob! Continuing Installation!"
+# echo "${blue}${LOGOUTPUT}${std}"
+# write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+# sleep 1
