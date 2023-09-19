@@ -16,7 +16,9 @@ ISP_BUSTER_FILE="${CLONE_DIR}/isp-buster"
 INSTALLER_FILE="${CLONE_DIR}/isp-buster-installer"
 UNINSTALLER_FILE="${CLONE_DIR}/isp-buster-uninstaller"
 AUTOINSTALLER_FILE="${CLONE_DIR}/isp-buster-autoinstaller"
-TMP_CRON_FILE="${BAK_DIR}/crontab"
+CRON_FILE="${CLONE_DIR}/crontab"
+TMP_CRON_FILE="${CLONE_DIR}/crontab_tmp"
+NEW_CRON_FILE="${CLONE_DIR}/crontab.new"
 BAK_CRON_FILE="${BAK_DIR}/crontab.bak"
 LOGFILE="${LOGS_DIR}/isp-buster_installation_log.txt"
 TMP_LOGFILE="/home/${USER}/isp-buster_tmp_installation_log.txt"
@@ -417,7 +419,7 @@ echo ""
 echo ""
 LOGDESC="Launching the initial Speedtest"
 echo "${blue}${LOGDESC}...${std}"
-LOGOUTPUT=$(sudo speedtest --accept-license --accept-gdpr)
+LOGOUTPUT=$(sudo speedtest --accept-license --accept-gdpr 2>&1)
 echo "${LOGOUTPUT}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 echo ""
@@ -437,7 +439,7 @@ echo "${blue}${LOGOUTPUT}...${std}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 echo ""
 sleep 0.5
-LOGOUTPUT=$(cd "${INSTALL_DIR}")
+LOGOUTPUT=$(cd "${INSTALL_DIR}" 2>&1)
 echo "cd ${INSTALL_DIR}; ${LOGOUTPUT}"
 cd "${INSTALL_DIR}" &> /dev/null
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
@@ -448,7 +450,7 @@ echo "${blue}${LOGOUTPUT}...${std}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 echo ""
 sleep 0.5
-LOGOUTPUT=$(sudo git clone ${GIT_ISPBUSTER})
+LOGOUTPUT=$(sudo git clone ${GIT_ISPBUSTER} 2>&1)
 echo "${LOGOUTPUT}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 echo ""
@@ -515,143 +517,337 @@ echo "${blue}${LOGOUTPUT}${std}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 sleep 1
 
+echo ""
+echo ""
+LOGDESC="Setting up IPerf3"
+echo "${blue}${LOGDESC}...${std}"
+echo ""
+LOGOUTPUT="Do you have an IPerf3 Host on your Firewall?"
+echo "${green}${LOGOUTPUT}${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+echo "1. Switch on IPerf3 Network testing"
+echo "2. Don't use IPerf3"
+echo ""
+read -r -p "${green}Enter a Number for an Option: ${std}" n;
+while ! [[ $n =~ ^[1-2]$ ]]
+do
+    echo ""
+    echo "${red}Wrong Input! Please enter a Number for an Option!${std}"
+    read -r -p "Enter a Number for an Option: " n;
+done
+sleep 0.5
+if [[ "$n" =~ ^(1)$ ]];
+then
+    echo ""
+    LOGOUTPUT="Select IPerf3 Host IPv4"
+    echo "${blue}${LOGOUTPUT}...${std}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
+	read -r -p "${green}Enter the IPv4 of the IPerf Host: ${std}" ip_address;
+	echo "${blue}Checking if the Host is reachable...${std}"
+	if ping -c 1 "$ip_address" &> /dev/null
+	then
+        LOGOUTPUT="The Host is reachable!"
+		echo "${blue}${LOGOUTPUT}${std}"
+        write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+        sleep 0.5
+		i=1
+	else
+		i=0
+	fi
+	while [[ $i -eq 0 ]]
+	do
+		echo ""
+        LOGOUTPUT="The Host is not reachable! Please try a different IP!"
+		echo "${red}${LOGOUTPUT}${std}"
+        write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+        sleep 0.5
+		read -r -p "Enter the IP of the NAS Server: " ip_address;
+		echo ""
+		echo "${blue}Checking if the Host is reachable...${std}"
 
+		if ping -c 1 "$ip_address" &> /dev/null
+		then
+			LOGOUTPUT="The Host is reachable!"
+            echo "${blue}${LOGOUTPUT}${std}"
+            write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+            sleep 0.5
+			i=1
+		else
+			i=0
+		fi
+	done
+    echo ""
+    LOGOUTPUT="Changing IPerf3 to ON and Host IPv4 within ${PYTHON_FILE}"
+    echo "${blue}${LOGOUTPUT}...${std}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
+    LOGOUTPUT=$(sudo sed -i "s/^iperf = */iperf = True/" ${PYTHON_FILE} 2>&1)
+    LOGOUTPUT="sudo sed -i 's/^iperf = */iperf = True/' ${PYTHON_FILE}; ${LOGOUTPUT}"
+    echo "${LOGOUTPUT}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
+    LOGOUTPUT=$(sudo sed -i "s/^target_ip = */target_ip = ${ip_address}/" ${PYTHON_FILE} 2>&1)
+    LOGOUTPUT="sudo sed -i 's/^target_ip = */target_ip = ${ip_address}/' ${PYTHON_FILE}; ${LOGOUTPUT}"
+    echo "${LOGOUTPUT}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
+else
+    LOGOUTPUT="Not switching ON IPerf3!"
+    echo "${blue}${LOGOUTPUT}${std}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
+fi
+LOGOUTPUT="IPerf3 successfully set up! Continuing Installation!"
+echo "${blue}${LOGOUTPUT}${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+sleep 1
 
+echo ""
+echo ""
+LOGDESC="Setting up Server ID"
+echo "${blue}${LOGDESC}...${std}"
+echo ""
+LOGOUTPUT="Do you want to change the Server ID to a specific one?"
+echo "${green}${LOGOUTPUT}${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+echo "1. Change the Server ID"
+echo "2. Choose Best at Runtime"
+echo ""
+read -r -p "${green}Enter a Number for an Option: ${std}" n;
+while ! [[ $n =~ ^[1-2]$ ]]
+do
+    echo ""
+    echo "${red}Wrong Input! Please enter a Number for an Option!${std}"
+    read -r -p "Enter a Number for an Option: " n;
+done
+sleep 0.5
+if [[ "$n" =~ ^(1)$ ]];
+then
+    echo ""
+    LOGDESC="Select Server ID"
+    echo "${blue}${LOGDESC}...${std}"
+    echo ""
+    LOGOUTPUT="Searching for Servers to display"
+    echo "${blue}${LOGOUTPUT}...${std}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
+    RESULTS=$(speedtest -L)
+    LOGOUTPUT=$(printf "%s   %s   %s\n" "Number" "Server ID" "Server Name")
+    COUNTER=1
+    IFS=$'\n'
+    for LINE in ${RESULTS}; do
+        if [[ ${LINE} =~ ^[[:space:]]*([0-9]+)[[:space:]]+([[:alnum:][:space:]-]+)$ ]]; then
+            SERVER_ID=${BASH_REMATCH[1]}
+            SERVER_NAME=${BASH_REMATCH[2]}
+            SERVER_NAME=$(echo "$SERVER_NAME" | sed -E 's/^(.*?)[[:space:]]{2,}.*$/\1/')
+            SERVER_NAME=$(echo "$SERVER_NAME" | sed -E 's/[[:space:]]+[[:alpha:]]+[[:space:]]*$//')
+            FORMATTED_LINE=$(printf "%3s   %12s   %s\n" "$COUNTER." "$SERVER_ID" "$SERVER_NAME")
+            LOGOUTPUT="${LOGOUTPUT}${FORMATTED_LINE}"
+            SERVER_IDS[COUNTER]=$SERVER_ID
+            ((COUNTER++))
+        fi
+    done
+    echo "${LOGOUTPUT}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
+    read -r -p "${green}Enter a Number for the Server ID you want to test against: ${std}" n;
+    while ! [[ $n =~ ^[1-9][0-9]{0,2}$ && $n -le ${#SERVER_IDS[@]} ]]
+    do
+            echo ""
+            echo "${red}Wrong Input! Please enter a Number for the Server ID!${std}"
+            read -r -p "Enter a Number for the Server ID: " n;
+    done
+    SERVER_ID="${SERVER_IDS[$n]}"
+    echo ""
+    LINE="You selected the following Server ID:"
+    echo "${green}${LINE}${std}"
+    echo "$SERVER_ID"
+    FORMATTED_LINE=$(printf "%s\n" "${LINE}")
+    LOGOUTPUT="${FORMATTED_LINE}${SERVER_ID}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
+    LOGOUTPUT="Changing Server ID within ${PYTHON_FILE}"
+    echo "${blue}${LOGOUTPUT}...${std}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
+    LOGOUTPUT=$(sudo sed -i "s/^target_id = */target_id = ${SERVER_ID}/" ${PYTHON_FILE} 2>&1)
+    LOGOUTPUT="sudo sed -i 's/^target_id = */target_id = ${SERVER_ID}/' ${PYTHON_FILE}; ${LOGOUTPUT}"
+    echo "${LOGOUTPUT}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
+else
+    LOGOUTPUT="Not changing Server ID within ${PYTHON_FILE}!"
+    echo "${blue}${LOGOUTPUT}${std}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
+fi
+LOGOUTPUT="Server ID successfully set up! Continuing Installation!"
+echo "${blue}${LOGOUTPUT}${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+sleep 1
 
-# echo "Code needed here to get User Input on Python Settings"
-# results=$(ls)
-# printf "%s   %s   %s\n" "Number" "Server ID" "Server Name"
-# n=1
-# for f in ${results}
-# do
-#        spaces_1=4
-#        spaces_2=7
-#        number="${n}."
-#        number_length=${#number}
-#        id=9563
-#        id=$((id + n))
-#        id_length=${#id}
+echo ""
+echo ""
+LOGDESC="Setting up Crontab"
+echo "${blue}${LOGDESC}...${std}"
+echo ""
+LOGOUTPUT="Checking if there already is a Crontab"
+echo "${blue}${LOGOUTPUT}...${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+LOGOUTPUT=$(sudo crontab -u root -l 2>&1)
+echo "${LOGOUTPUT}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
+if [[ "${LOGOUTPUT}" = "no crontab for root" ]]
+then
+    LOGOUTPUT="There's no Crontab! Creating one now!"
+    echo "${blue}${LOGOUTPUT}${std}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
+    LOGOUTPUT=$(sudo crontab -u root "${CRON_FILE}" 2>&1)
+    LOGOUTPUT="sudo crontab -u root ${CRON_FILE}; ${LOGOUTPUT}"
+    echo "${LOGOUTPUT}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
+    LOGOUTPUT="Copying a fresh Crontab File into the Backup Directory"
+    echo "${blue}${LOGOUTPUT}...${std}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
+    LOGOUTPUT=$(sudo cp "${NEW_CRON_FILE}" "${BAK_CRON_FILE}" 2>&1)
+    LOGOUTPUT="sudo cp ${NEW_CRON_FILE} ${BAK_CRON_FILE}; ${LOGOUTPUT}"
+    echo "${LOGOUTPUT}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
+else
+    LOGOUTPUT="Creating a backup of the Crontab now"
+    echo "${blue}${LOGOUTPUT}...${std}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
+    LOGOUTPUT=$(sudo crontab -u root -l | sudo tee "${BAK_CRON_FILE}" 2>&1)
+    echo "${LOGOUTPUT}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
+    LOGOUTPUT="Copying backup File"
+    echo "${blue}${LOGOUTPUT}...${std}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
+    LOGOUTPUT=$(sudo cp ${BAK_CRON_FILE} ${TMP_CRON_FILE} 2>&1)
+    LOGOUTPUT="sudo cp ${BAK_CRON_FILE} ${TMP_CRON_FILE}; ${LOGOUTPUT}"
+    echo "${LOGOUTPUT}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
+    LOGOUTPUT="Inserting Cronjob into File"
+    echo "${blue}${LOGOUTPUT}...${std}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
+    LOGOUTPUT=$(echo "${CRON_STRING}" | sudo tee -a ${TMP_CRON_FILE} 2>&1)
+    LOGOUTPUT="echo '${CRON_STRING}' | sudo tee -a ${TMP_CRON_FILE}; ${LOGOUTPUT}"
+    echo "${LOGOUTPUT}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
+    LOGOUTPUT="Updating crontab with the File"
+    echo "${blue}${LOGOUTPUT}...${std}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
+    LOGOUTPUT=$(sudo crontab -u root "${TMP_CRON_FILE}" 2>&1)
+    LOGOUTPUT="sudo crontab -u root ${TMP_CRON_FILE}; ${LOGOUTPUT}"
+    echo "${LOGOUTPUT}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
+    LOGOUTPUT="Removing Temporary File"
+    echo "${blue}${LOGOUTPUT}...${std}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
+    LOGOUTPUT=$(sudo rm "${TMP_CRON_FILE}" 2>&1)
+    LOGOUTPUT="sudo rm ${TMP_CRON_FILE}; ${LOGOUTPUT}"
+    echo "${LOGOUTPUT}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
+fi
+LOGOUTPUT="Successfully created Cronjob! Continuing Installation!"
+echo "${blue}${LOGOUTPUT}${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+sleep 1
 
-#         while [[ $number_length -lt $spaces_1 ]]
-#         do
-#                 number="${number} "
-#                 number_length=${#number}
-#         done
-#         while [[ $id_length -lt $spaces_2 ]]
-#         do
-#                 id=" $id"
-#                 id_length=${#id}
-#         done
+echo ""
+echo ""
+echo "${blue}Cleaning up the Installation...${std}"
+echo ""
+echo "${blue}Checking if I exist in the Directory I'm run...${std}"
+if [ -f "${MY_PATH}" ]
+then
+	echo "${blue}It seems I still exist. Purging myself now for Cleanup...${std}"
+	i_exist=true
+else
+	echo "${red}It seems I don't exist in the Directory I'm run. Not able to clean myself up!${std}"
+	i_exist=false
+fi
 
-#         printf " %s   %s      %s\n" "${number}" "${id}" "${f}"
-#         files[n]=${d}
-#         ((n++))
-# done
+echo ""
+echo "${blue}Cleanup complete! Continuing the Installation!${std}"
+sleep 1
 
+echo ""
+echo ""
+echo "${green}It is highly recommended to reboot after Installation!${std}"
+echo "${green}Do you want to reboot now?${std}"
+read -r -p "Yes (y)/ No (n): " n;
 
-# echo ""
-# echo ""
-# LOGDESC="Creating Backup of Crontab"
-# echo "${blue}${LOGDESC}...${std}"
-# echo ""
-# LOGOUTPUT="Checking if there already is a Crontab"
-# echo "${blue}${LOGOUTPUT}...${std}"
-# write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-# echo ""
-# sleep 0.5
-# LOGOUTPUT=$(sudo crontab -u root -l 2>&1)
-# echo "${LOGOUTPUT}"
-# write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-# echo ""
-# sleep 0.5
-# if [[ "${LOGOUTPUT}" = "no crontab for root" ]]
-# then
-#     LOGOUTPUT="There's no Crontab! Creating one now!"
-#     echo "${blue}${LOGOUTPUT}${std}"
-#     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-#     echo ""
-#     sleep 0.5
-#     LOGOUTPUT=$(sudo crontab -u root -e 2>&1)
-#     echo "${LOGOUTPUT}"
-#     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-#     echo ""
-#     sleep 0.5
-#     LOGOUTPUT="Checking again if there's a Crontab now"
-#     echo "${blue}${LOGOUTPUT}...${std}"
-#     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-#     echo ""
-#     sleep 0.5
-#     LOGOUTPUT=$(sudo crontab -u root -l 2>&1)
-#     echo "${LOGOUTPUT}"
-#     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-#     echo ""
-#     sleep 0.5
-# fi
-# LOGOUTPUT="Creating a backup of the Crontab now"
-# echo "${blue}${LOGOUTPUT}...${std}"
-# write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-# echo ""
-# sleep 0.5
-# LOGOUTPUT=$(sudo crontab -u root -l | sudo tee "${BAK_CRON_FILE}" 2>&1)
-# echo "${LOGOUTPUT}"
-# write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-# echo ""
-# sleep 0.5
-# LOGOUTPUT="Crontab successfully backed up! Continuing Installation!"
-# echo "${blue}${LOGOUTPUT}${std}"
-# write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-# sleep 1
+while ! [[ "$n" =~ ^(y|n)$ ]];
+do
+	echo ""
+	echo "${red}Wrong Input! Please type 'y' for 'YES' or 'n' for 'NO'!${std}"
+	read -r -p "Yes (y)/ No (n): " n;
+done
 
-# echo ""
-# echo ""
-# LOGDESC="Creating Cronjob"
-# echo "${blue}${LOGDESC}...${std}"
-# echo ""
-# LOGOUTPUT="Copying backup File"
-# echo "${blue}${LOGOUTPUT}...${std}"
-# write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-# echo ""
-# sleep 0.5
-# LOGOUTPUT=$(sudo cp ${BAK_CRON_FILE} ${TMP_CRON_FILE})
-# LOGOUTPUT="sudo cp ${BAK_CRON_FILE} ${TMP_CRON_FILE};\n${LOGOUTPUT}"
-# echo "${LOGOUTPUT}"
-# write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-# echo ""
-# sleep 0.5
-# LOGOUTPUT="Inserting Cronjob into File"
-# echo "${blue}${LOGOUTPUT}...${std}"
-# write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-# echo ""
-# sleep 0.5
-# LOGOUTPUT=$(echo "${CRON_STRING}" | sudo tee -a ${TMP_CRON_FILE})
-# LOGOUTPUT="echo '${CRON_STRING}' | sudo tee -a ${TMP_CRON_FILE};\n${LOGOUTPUT}"
-# echo "${LOGOUTPUT}"
-# write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-# echo ""
-# sleep 0.5
-# LOGOUTPUT="Updating crontab with the File"
-# echo "${blue}${LOGOUTPUT}...${std}"
-# write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-# echo ""
-# sleep 0.5
-# LOGOUTPUT=$(sudo crontab ${TMP_CRON_FILE})
-# LOGOUTPUT="sudo crontab ${TMP_CRON_FILE};\n${LOGOUTPUT}"
-# echo "${LOGOUTPUT}"
-# write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-# echo ""
-# sleep 0.5
-# LOGOUTPUT="Removing Temporary File"
-# echo "${blue}${LOGOUTPUT}...${std}"
-# write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-# echo ""
-# sleep 0.5
-# LOGOUTPUT=$(sudo rm ${TMP_CRON_FILE})
-# LOGOUTPUT="sudo rm ${TMP_CRON_FILE};\n${LOGOUTPUT}"
-# echo "${LOGOUTPUT}"
-# write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-# echo ""
-# sleep 0.5
-# LOGOUTPUT="Successfully created Cronjob! Continuing Installation!"
-# echo "${blue}${LOGOUTPUT}${std}"
-# write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-# sleep 1
+if [[ "$n" =~ ^(y)$ ]];
+then
+	echo ""
+	echo "${green}Installation complete! Rebooting now...${std}"
+	if $i_exist
+	then
+		sudo rm "${MY_PATH}"
+	fi
+	sudo reboot now
+	sleep 1
+else
+	echo ""
+	echo "${red}Installation complete! Not Rebooting!${std}"
+	echo "${red}Please reboot your System whenever it is convenient!${std}"
+	if $i_exist
+	then
+		sudo rm "${MY_PATH}"
+	fi
+	sleep 1
+fi
