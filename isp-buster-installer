@@ -450,7 +450,8 @@ LOGOUTPUT="Downloading Repository now"
 echo "${blue}${LOGOUTPUT}...${std}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 sleep 0.5
-LOGOUTPUT=$(sudo git clone ${GIT_ISPBUSTER})
+LOGOUTPUT=$(sudo git clone ${GIT_ISPBUSTER} 2>&1)
+LOGOUTPUT="sudo git clone ${GIT_ISPBUSTER} 2>&1; ${LOGOUTPUT}"
 echo "${LOGOUTPUT}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 echo ""
@@ -638,32 +639,44 @@ then
     echo ""
     sleep 0.5
     RESULTS=$(speedtest -L)
-    FORMATTED_LINE=$(printf "%s   %s   %s" "Number" "Server ID" "Server Name")
-    LOG_LINES+=("FORMATTED_LINE")
+    LOG_LINES+=("--------------------------------------------------------------------------------------------------------")
+    FORMATTED_LINE=$(printf " %-10s %-15s %-50s %-30s" "[Number]" "[Server ID]" "[Server Name]" "[Server Location]")
+    LOG_LINES+=("$FORMATTED_LINE")
+    LOG_LINES+=("--------------------------------------------------------------------------------------------------------")
     COUNTER=1
     IFS=$'\n'
-    for LINE in ${RESULTS}; do
-        if [[ ${LINE} =~ ^[[:space:]]*([0-9]+)[[:space:]]+([[:alnum:][:space:]-]+)$ ]]; then
+    for LINE in ${RESULTS}
+    do
+        if [[ ${LINE} =~ ^[[:space:]]*([0-9]+)[[:space:]]+([[:alnum:][:space:]-]+)$ ]]
+        then
             SERVER_ID=${BASH_REMATCH[1]}
             SERVER_NAME=${BASH_REMATCH[2]}
-            SERVER_NAME=$(echo "$SERVER_NAME" | sed -E 's/^(.*?)[[:space:]]{2,}.*$/\1/')
             SERVER_NAME=$(echo "$SERVER_NAME" | sed -E 's/[[:space:]]+[[:alpha:]]+[[:space:]]*$//')
-            FORMATTED_LINE=$(printf "%3s   %12s   %s" "$COUNTER." "$SERVER_ID" "$SERVER_NAME")
-            LOG_LINES+=("FORMATTED_LINE")
+            SERVER_NAME=$(echo "$SERVER_NAME" | sed -E 's/^[[:space:]]+//;s/[[:space:]]+$//')
+            if [[ "$SERVER_NAME" == *"  "* ]]
+            then
+                SERVER_CITY=$(echo "$SERVER_NAME" | sed -E 's/.*[[:space:]]{2,}//')
+            else
+                SERVER_CITY=$(echo "$SERVER_NAME" | awk '{print $NF}')
+            fi
+            SERVER_NAME=$(echo "$SERVER_NAME" | sed -E "s/(.*)[[:space:]]+${SERVER_CITY}/\1/")
+            FORMATTED_LINE=$(printf " %-10s %-15s %-50s %-30s" "$COUNTER." "$SERVER_ID" "$SERVER_NAME" "$SERVER_CITY")
+            LOG_LINES+=("$FORMATTED_LINE")
             SERVER_IDS[COUNTER]=$SERVER_ID
             ((COUNTER++))
         fi
     done
     LOGOUTPUT=$(printf "%s\n" "${LOG_LINES[@]}")
+    echo "${LOGOUTPUT}"
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
     echo ""
     sleep 0.5
     read -r -p "${green}Enter a Number for the Server ID you want to test against:${std} " n;
     while ! [[ $n =~ ^[1-9][0-9]{0,2}$ && $n -le ${#SERVER_IDS[@]} ]]
     do
-            echo ""
-            echo "${red}Wrong Input! Please enter a Number for the Server ID!${std}"
-            read -r -p "Enter a Number for the Server ID: " n;
+        echo ""
+        echo "${red}Wrong Input! Please enter a Number for the Server ID!${std}"
+        read -r -p "Enter a Number for the Server ID: " n;
     done
     SERVER_ID="${SERVER_IDS[$n]}"
     echo ""
