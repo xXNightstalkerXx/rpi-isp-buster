@@ -10,8 +10,8 @@ import time
 # The Server ID can be found by typing "speedtest -L"
 
 iperf = False       # Options: True/False ; Set to True if you are able to install an IPerf3 Host on your Firewall
-target_ip = None    # Options: XXX.XXX.XXX.XXX/None ; Set the IPv4 Adress of your Firewall at which the IPerf3 Host is waiting for connections
-target_id = None    # Options: XXXXX/None ; Set the Server ID of a specific Ookla Speedtest Server if you wish to keep the Speedtest Results consistent
+target_ip = None    # Options: 123.123.123.123/None ; Set the IPv4 Adress of your Firewall at which the IPerf3 Host is waiting for connections
+target_id = None    # Options: 12345/None ; Set the Server ID of a specific Ookla Speedtest Server if you wish to keep the Speedtest Results consistent
 
 
 # Function to extract a value from a string using a regex pattern and set to "N/A" if not found
