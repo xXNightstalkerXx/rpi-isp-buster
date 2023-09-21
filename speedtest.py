@@ -94,10 +94,10 @@ except Exception as e:
     print(f"{logdescription}:")
     print(logoutput)
 
-    returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput)
+    returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput, "", "", "", "", "", "", "")
 
     if returncode[0] == 1:
-        write_csvfile(filetype_tmplog, logtype, logdescription, logoutput)
+        write_csvfile(filetype_tmplog, logtype, logdescription, logoutput, "", "", "", "", "", "", "")
 
 
 # Run the IPerf Test and log it into a .csv File if specified in the Settings
@@ -114,10 +114,10 @@ if iperf and target_ip != None:
         print(f"{logdescription}:")
         print(logoutput)
 
-        returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput)
+        returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput, "", "", "", "", "", "", "")
 
         if returncode[0] == 1:
-            write_csvfile(filetype_tmplog, logtype, logdescription, logoutput)
+            write_csvfile(filetype_tmplog, logtype, logdescription, logoutput, "", "", "", "", "", "", "")
 
     # Split the IPerf output into lines
     iperf_lines = iperf_output.splitlines()
@@ -165,24 +165,24 @@ if iperf and target_ip != None:
             print(f"{logdescription}:")
             print(logoutput)
 
-            returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput)
+            returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput, "", "", "", "", "", "", "")
 
             if returncode[0] == 1:
-                write_csvfile(filetype_tmplog, logtype, logdescription, logoutput)
+                write_csvfile(filetype_tmplog, logtype, logdescription, logoutput, "", "", "", "", "", "", "")
 
     # Write the IPerf data to the file
     # CSV File Header: Local (IPv4),Target (IPv4),Interval (sec),Transfer (MBytes),Bitrate (Mbits/sec),Retries
     # CSV File Vars: local_ip, target_ip, interval, transfer, bitrate, retries
-    returncode = write_csvfile(filetype_iperf, target_ip, interval, transfer, bitrate, retries)
+    returncode = write_csvfile(filetype_iperf, target_ip, interval, transfer, bitrate, retries, "", "", "", "", "")
 
     logtype = returncode[1]
     logdescription = returncode[2]
     logoutput = returncode [3]
 
-    returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput)
+    returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput, "", "", "", "", "", "", "")
 
     if returncode[0] == 1:
-        write_csvfile(filetype_tmplog, logtype, logdescription, logoutput)
+        write_csvfile(filetype_tmplog, logtype, logdescription, logoutput, "", "", "", "", "", "", "")
 
 
 # Use the right Speedtest switches depending on the given Server ID to connect to. By default it selects the best Server at each Test.
@@ -202,10 +202,10 @@ except Exception as e:
     print(f"{logdescription}:")
     print(logoutput)
 
-    returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput)
+    returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput, "", "", "", "", "", "", "")
 
     if returncode[0] == 1:
-        write_csvfile(filetype_tmplog, logtype, logdescription, logoutput)
+        write_csvfile(filetype_tmplog, logtype, logdescription, logoutput, "", "", "", "", "", "", "")
 
 # Extract Speedtest values
 server_pattern = r'\(id:\s+(.*?)\)'
@@ -229,24 +229,24 @@ if server == "N/A" or ping == "N/A" or download == "N/A" or upload == "N/A" or j
     print(f"{logdescription}:")
     print(logoutput)
 
-    returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput)
+    returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput, "", "", "", "", "", "", "")
 
     if returncode[0] == 1:
-        write_csvfile(filetype_tmplog, logtype, logdescription, logoutput)
+        write_csvfile(filetype_tmplog, logtype, logdescription, logoutput, "", "", "", "", "", "", "")
 
 # Write the Speedtest data to the file
 # CSV File Header: Server ID,Ping (ms),Jitter (ms),Download (Mbits/sec),Upload (Mbits/sec)
 # CSV File Vars: server, ping, jitter, download, upload
-returncode = write_csvfile(filetype_speedtest, server, ping, jitter, download, upload)
+returncode = write_csvfile(filetype_speedtest, server, ping, jitter, download, upload, "", "", "", "", "")
 
 logtype = returncode[1]
 logdescription = returncode[2]
 logoutput = returncode [3]
 
-returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput)
+returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput, "", "", "", "", "", "", "")
 
 if returncode[0] == 1:
-    write_csvfile(filetype_tmplog, logtype, logdescription, logoutput)
+    write_csvfile(filetype_tmplog, logtype, logdescription, logoutput, "", "", "", "", "", "", "")
 
 
 # Write the Combined data to the file
@@ -259,10 +259,10 @@ if iperf and target_ip != None:
     logdescription = returncode[2]
     logoutput = returncode [3]
 
-    returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput)
+    returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput, "", "", "", "", "", "", "")
 
     if returncode[0] == 1:
-        write_csvfile(filetype_tmplog, logtype, logdescription, logoutput)
+        write_csvfile(filetype_tmplog, logtype, logdescription, logoutput, "", "", "", "", "", "", "")
 
 
 # Write the Logfile entry for finishing the Speedtest
@@ -273,7 +273,7 @@ logdescription = "The Speedtest finished successfully"
 print(f"{logdescription}:")
 print(logoutput)
 
-returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput)
+returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput, "", "", "", "", "", "", "")
 
 if returncode[0] == 1:
-    write_csvfile(filetype_tmplog, logtype, logdescription, logoutput)
+    write_csvfile(filetype_tmplog, logtype, logdescription, logoutput, "", "", "", "", "", "", "")
