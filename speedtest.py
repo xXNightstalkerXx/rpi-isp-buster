@@ -156,19 +156,19 @@ if iperf and target_ip != None:
             retries_pattern = r'(\d+)'
             retries = extract_value(retries_pattern, remaining_part)
 
-        # Check if any of the values couldn't be found so it can be stored at the logfile
-        if local_ip == "N/A" or target_ip == "N/A" or interval == "N/A" or transfer == "N/A" or bitrate == "N/A" or retries == "N/A":
-            logtype = "WARNING"
-            logoutput = f"Local IP:{local_ip};Target IP:{target_ip};Interval:{interval}sec;Transfer:{transfer}Mbytes;Bitrate:{bitrate}Mbits/sec;Retries:{retries}"
-            logdescription = "One or more IPerf values couldn't be found"
+# Check if any of the values couldn't be found so it can be stored at the logfile
+if local_ip == "N/A" or target_ip == "N/A" or interval == "N/A" or transfer == "N/A" or bitrate == "N/A" or retries == "N/A":
+    logtype = "WARNING"
+    logoutput = f"Local IP:{local_ip};Target IP:{target_ip};Interval:{interval}sec;Transfer:{transfer}Mbytes;Bitrate:{bitrate}Mbits/sec;Retries:{retries}"
+    logdescription = "One or more IPerf values couldn't be found"
 
-            print(f"{logdescription}:")
-            print(logoutput)
+    print(f"{logdescription}:")
+    print(logoutput)
 
-            returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput, "", "", "", "", "", "", "")
+    returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput, "", "", "", "", "", "", "")
 
-            if returncode[0] == 1:
-                write_csvfile(filetype_tmplog, logtype, logdescription, logoutput, "", "", "", "", "", "", "")
+    if returncode[0] == 1:
+        write_csvfile(filetype_tmplog, logtype, logdescription, logoutput, "", "", "", "", "", "", "")
 
     # Write the IPerf data to the file
     # CSV File Header: Local (IPv4),Target (IPv4),Interval (sec),Transfer (MBytes),Bitrate (Mbits/sec),Retries
