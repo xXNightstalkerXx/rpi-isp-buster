@@ -360,7 +360,8 @@ echo ""
 LOGDESC="Installing Ookla Repository Key"
 echo "${blue}${LOGDESC}...${std}"
 echo ""
-LOGOUTPUT=$(curl -L https://packagecloud.io/ookla/speedtest-cli/gpgkey | gpg --dearmor | sudo tee /usr/share/keyrings/speedtestcli-archive-keyring.gpg 1> /dev/null)
+LOGOUTPUT=$(curl -L https://packagecloud.io/ookla/speedtest-cli/gpgkey | gpg --dearmor | sudo tee /usr/share/keyrings/speedtestcli-archive-keyring.gpg 1> /dev/null 2>&1)
+LOGOUTPUT="curl -L https://packagecloud.io/ookla/speedtest-cli/gpgkey | gpg --dearmor | sudo tee /usr/share/keyrings/speedtestcli-archive-keyring.gpg 1> /dev/null 2>&1; ${LOGOUTPUT}"
 echo "${LOGOUTPUT}"
 write_logfile "${LOGTYPE_WARNING}" "${LOGDESC}" "${LOGOUTPUT}"
 echo ""
@@ -376,6 +377,7 @@ LOGDESC="Adding Ookla Repository to APT Repository Lists"
 echo "${blue}${LOGDESC}...${std}"
 echo ""
 LOGOUTPUT=$(echo "deb [signed-by=/usr/share/keyrings/speedtestcli-archive-keyring.gpg] https://packagecloud.io/ookla/speedtest-cli/debian/ $(lsb_release -cs) main" | sudo tee ${APT_LIST} 1> /dev/null)
+LOGOUTPUT="echo 'deb [signed-by=/usr/share/keyrings/speedtestcli-archive-keyring.gpg] https://packagecloud.io/ookla/speedtest-cli/debian/ $(lsb_release -cs) main' | sudo tee ${APT_LIST} 1> /dev/null; ${LOGOUTPUT}"
 echo "${LOGOUTPUT}"
 write_logfile "${LOGTYPE_WARNING}" "${LOGDESC}" "${LOGOUTPUT}"
 echo ""
@@ -437,18 +439,16 @@ echo ""
 LOGOUTPUT="Changing Directory to ${INSTALL_DIR}"
 echo "${blue}${LOGOUTPUT}...${std}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-echo ""
 sleep 0.5
 LOGOUTPUT=$(cd "${INSTALL_DIR}" 2>&1)
-echo "cd ${INSTALL_DIR}; ${LOGOUTPUT}"
+LOGOUTPUT="cd ${INSTALL_DIR}; ${LOGOUTPUT}"
+echo "${LOGOUTPUT}"
 cd "${INSTALL_DIR}" &> /dev/null
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-echo ""
 sleep 0.5
 LOGOUTPUT="Downloading Repository now"
 echo "${blue}${LOGOUTPUT}...${std}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-echo ""
 sleep 0.5
 LOGOUTPUT=$(sudo git clone ${GIT_ISPBUSTER})
 echo "${LOGOUTPUT}"
@@ -546,6 +546,7 @@ then
     echo ""
     sleep 0.5
 	read -r -p "${green}Enter the IPv4 of the IPerf Host: ${std}" ip_address;
+    echo ""
 	echo "${blue}Checking if the Host is reachable...${std}"
 	if ping -c 1 "$ip_address" &> /dev/null
 	then
@@ -559,7 +560,6 @@ then
 	fi
 	while [[ $i -eq 0 ]]
 	do
-		echo ""
         LOGOUTPUT="The Host is not reachable! Please try a different IP!"
 		echo "${red}${LOGOUTPUT}${std}"
         write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
@@ -579,31 +579,28 @@ then
 			i=0
 		fi
 	done
-    echo ""
-    LOGOUTPUT="Changing IPerf3 to ON and Host IPv4 within ${PYTHON_FILE}"
+    LOGOUTPUT="Changing IPerf to True and Host IPv4 within ${PYTHON_FILE}"
     echo "${blue}${LOGOUTPUT}...${std}"
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    echo ""
     sleep 0.5
-    LOGOUTPUT=$(sudo sed -i "s/^iperf = False/iperf = True/" ${PYTHON_FILE} 2>&1)
-    LOGOUTPUT="sudo sed -i 's/^iperf = False/iperf = True/' ${PYTHON_FILE}; ${LOGOUTPUT}"
+    LOGOUTPUT=$(sudo sed -i "s/^iperf = False/iperf = True/" ${PYTHON_FILE} 1> /dev/null)
+    LOGOUTPUT="sudo sed -i 's/^iperf = False/iperf = True/' ${PYTHON_FILE} 1> /dev/null; ${LOGOUTPUT}"
     echo "${LOGOUTPUT}"
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    echo ""
     sleep 0.5
-    LOGOUTPUT=$(sudo sed -i "s/^target_ip = None/target_ip = '${ip_address}'/" ${PYTHON_FILE} 2>&1)
-    LOGOUTPUT="sudo sed -i 's/^target_ip = None/target_ip = '${ip_address}'/' ${PYTHON_FILE}; ${LOGOUTPUT}"
+    LOGOUTPUT=$(sudo sed -i "s/^target_ip = None/target_ip = '${ip_address}'/" ${PYTHON_FILE} 1> /dev/null)
+    LOGOUTPUT="sudo sed -i 's/^target_ip = None/target_ip = '${ip_address}'/' ${PYTHON_FILE} 1> /dev/null; ${LOGOUTPUT}"
     echo "${LOGOUTPUT}"
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    echo ""
     sleep 0.5
 else
+    echo ""
     LOGOUTPUT="Not switching ON IPerf3!"
     echo "${blue}${LOGOUTPUT}${std}"
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    echo ""
     sleep 0.5
 fi
+echo ""
 LOGOUTPUT="IPerf3 successfully set up! Continuing Installation!"
 echo "${blue}${LOGOUTPUT}${std}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
@@ -641,8 +638,8 @@ then
     echo ""
     sleep 0.5
     RESULTS=$(speedtest -L)
-    LOGOUTPUT=$(printf "%s   %s   %s\n" "Number" "Server ID" "Server Name")
-    echo "${LOGOUTPUT}"
+    FORMATTED_LINE=$(printf "%s   %s   %s" "Number" "Server ID" "Server Name")
+    LOG_LINES+=("FORMATTED_LINE")
     COUNTER=1
     IFS=$'\n'
     for LINE in ${RESULTS}; do
@@ -651,13 +648,13 @@ then
             SERVER_NAME=${BASH_REMATCH[2]}
             SERVER_NAME=$(echo "$SERVER_NAME" | sed -E 's/^(.*?)[[:space:]]{2,}.*$/\1/')
             SERVER_NAME=$(echo "$SERVER_NAME" | sed -E 's/[[:space:]]+[[:alpha:]]+[[:space:]]*$//')
-            FORMATTED_LINE=$(printf "%3s   %12s   %s\n" "$COUNTER." "$SERVER_ID" "$SERVER_NAME")
-            echo "${FORMATTED_LINE}"
-            LOGOUTPUT="${LOGOUTPUT}${FORMATTED_LINE}"
+            FORMATTED_LINE=$(printf "%3s   %12s   %s" "$COUNTER." "$SERVER_ID" "$SERVER_NAME")
+            LOG_LINES+=("FORMATTED_LINE")
             SERVER_IDS[COUNTER]=$SERVER_ID
             ((COUNTER++))
         fi
     done
+    LOGOUTPUT=$(printf "%s\n" "${LOG_LINES[@]}")
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
     echo ""
     sleep 0.5
@@ -709,32 +706,29 @@ echo ""
 LOGOUTPUT="Checking if there already is a Crontab"
 echo "${blue}${LOGOUTPUT}...${std}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-echo ""
 sleep 0.5
-LOGOUTPUT=$(sudo crontab -u root -l 2>&1)
+LOGOUTPUT=$(sudo crontab -u root -l 1> /dev/null)
+LOGOUTPUT="sudo crontab -u root -l 1> /dev/null; ${LOGOUTPUT}"
 echo "${LOGOUTPUT}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 echo ""
 sleep 0.5
-if [[ "${LOGOUTPUT}" = "no crontab for root" ]]
+if [[ "${LOGOUTPUT}" == *no\ crontab\ for\ root* ]]
 then
-    LOGOUTPUT="There's no Crontab! Creating one now!"
-    echo "${blue}${LOGOUTPUT}${std}"
+    LOGOUTPUT="There's no Crontab! Creating one now"
+    echo "${blue}${LOGOUTPUT}...${std}"
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    echo ""
     sleep 0.5
-    LOGOUTPUT=$(sudo crontab -u root "${CRON_FILE}" 2>&1)
+    LOGOUTPUT=$(sudo crontab -u root "${CRON_FILE}" 1> /dev/null)
     LOGOUTPUT="sudo crontab -u root ${CRON_FILE}; ${LOGOUTPUT}"
     echo "${LOGOUTPUT}"
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    echo ""
     sleep 0.5
     LOGOUTPUT="Copying a fresh Crontab File into the Backup Directory"
     echo "${blue}${LOGOUTPUT}...${std}"
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    echo ""
     sleep 0.5
-    LOGOUTPUT=$(sudo cp "${NEW_CRON_FILE}" "${BAK_CRON_FILE}" 2>&1)
+    LOGOUTPUT=$(sudo cp "${NEW_CRON_FILE}" "${BAK_CRON_FILE}" 1> /dev/null)
     LOGOUTPUT="sudo cp ${NEW_CRON_FILE} ${BAK_CRON_FILE}; ${LOGOUTPUT}"
     echo "${LOGOUTPUT}"
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
@@ -744,58 +738,50 @@ else
     LOGOUTPUT="Creating a backup of the Crontab now"
     echo "${blue}${LOGOUTPUT}...${std}"
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    echo ""
     sleep 0.5
-    LOGOUTPUT=$(sudo crontab -u root -l | sudo tee "${BAK_CRON_FILE}" 2>&1)
+    LOGOUTPUT=$(sudo crontab -u root -l | sudo tee ${BAK_CRON_FILE} 1> /dev/null)
+    LOGOUTPUT="sudo crontab -u root -l | sudo tee ${BAK_CRON_FILE} 1> /dev/null; ${LOGOUTPUT}"
     echo "${LOGOUTPUT}"
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    echo ""
     sleep 0.5
     LOGOUTPUT="Copying backup File"
     echo "${blue}${LOGOUTPUT}...${std}"
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    echo ""
     sleep 0.5
-    LOGOUTPUT=$(sudo cp ${BAK_CRON_FILE} ${TMP_CRON_FILE} 2>&1)
+    LOGOUTPUT=$(sudo cp ${BAK_CRON_FILE} ${TMP_CRON_FILE})
     LOGOUTPUT="sudo cp ${BAK_CRON_FILE} ${TMP_CRON_FILE}; ${LOGOUTPUT}"
     echo "${LOGOUTPUT}"
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    echo ""
     sleep 0.5
     LOGOUTPUT="Inserting Cronjob into File"
     echo "${blue}${LOGOUTPUT}...${std}"
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    echo ""
     sleep 0.5
-    LOGOUTPUT=$(echo "${CRON_STRING}" | sudo tee -a ${TMP_CRON_FILE} 2>&1)
+    LOGOUTPUT=$(echo "${CRON_STRING}" | sudo tee -a ${TMP_CRON_FILE} 1> /dev/null)
     LOGOUTPUT="echo '${CRON_STRING}' | sudo tee -a ${TMP_CRON_FILE}; ${LOGOUTPUT}"
     echo "${LOGOUTPUT}"
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    echo ""
     sleep 0.5
     LOGOUTPUT="Updating crontab with the File"
     echo "${blue}${LOGOUTPUT}...${std}"
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    echo ""
     sleep 0.5
-    LOGOUTPUT=$(sudo crontab -u root "${TMP_CRON_FILE}" 2>&1)
+    LOGOUTPUT=$(sudo crontab -u root "${TMP_CRON_FILE}" 1> /dev/null)
     LOGOUTPUT="sudo crontab -u root ${TMP_CRON_FILE}; ${LOGOUTPUT}"
     echo "${LOGOUTPUT}"
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    echo ""
     sleep 0.5
     LOGOUTPUT="Removing Temporary File"
     echo "${blue}${LOGOUTPUT}...${std}"
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    echo ""
     sleep 0.5
-    LOGOUTPUT=$(sudo rm "${TMP_CRON_FILE}" 2>&1)
+    LOGOUTPUT=$(sudo rm "${TMP_CRON_FILE}" 1> /dev/null)
     LOGOUTPUT="sudo rm ${TMP_CRON_FILE}; ${LOGOUTPUT}"
     echo "${LOGOUTPUT}"
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    echo ""
     sleep 0.5
 fi
+echo ""
 LOGOUTPUT="Successfully created Cronjob! Continuing Installation!"
 echo "${blue}${LOGOUTPUT}${std}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
@@ -809,21 +795,17 @@ echo ""
 LOGOUTPUT="Checking if I exist in the Directory I'm run"
 echo "${blue}${LOGOUTPUT}...${std}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-echo ""
-sleep 0.5
 if [ -f "${MY_PATH}" ]
 then
     LOGOUTPUT="It seems I still exist. Purging myself now for Cleanup"
     echo "${blue}${LOGOUTPUT}...${std}"
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    echo ""
     sleep 0.5
 	i_exist=true
 else
     LOGOUTPUT="It seems I don't exist in the Directory I'm run. Not able to clean myself up!"
     echo "${red}${LOGOUTPUT}${std}"
     write_logfile "${LOGTYPE_WARNING}" "${LOGDESC}" "${LOGOUTPUT}"
-    echo ""
     sleep 0.5
 	i_exist=false
 fi
