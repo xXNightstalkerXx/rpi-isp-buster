@@ -39,38 +39,38 @@ GIT_ISPBUSTER="https://github.com/xXNightstalkerXx/isp-buster.git"
 std=$(tput setaf 15)
 red=$(tput setaf 9 bold)
 green=$(tput setaf 10 bold)
-yellow=$(tput setaf 11 bold)
-pink=$(tput setaf 57)
+# yellow=$(tput setaf 11 bold)
+# pink=$(tput setaf 57)
 blue=$(tput setaf 27 bold)
 
 # Function Decalarations
 write_logfile () {
     logtype="$1"
-    logoutput="\n\n${3}"
+    logoutput="$3"
     logdescription="$2"
     date=$(date +"%d/%m/%y")
     timestamp=$(date +"%H:%M:%S")
 
     if ! [ -f "${LOGFILE}" ]
     then
-        echo -E "${date},${timestamp},${logtype},${logdescription},${logoutput}" > "${LOGFILE}"
+        printf "[%s]  [%s]  [%s]  [%s]\n%s\n\n" "${date}" "${timestamp}" "${logtype}" "${logdescription}" "${logoutput}" > "${LOGFILE}"
     else
-        echo -E "${date},${timestamp},${logtype},${logdescription},${logoutput}" >> "${LOGFILE}"
+        printf "[%s]  [%s]  [%s]  [%s]\n%s\n\n" "${date}" "${timestamp}" "${logtype}" "${logdescription}" "${logoutput}" >> "${LOGFILE}"
     fi
 }
 
 write_tmp_logfile () {
     logtype="$1"
-    logoutput="\n\n${3}"
+    logoutput="$3"
     logdescription="$2"
     date=$(date +"%d/%m/%y")
     timestamp=$(date +"%H:%M:%S")
 
     if ! [ -f "${TMP_LOGFILE}" ]
     then
-        echo -E "${date},${timestamp},${logtype},${logdescription},${logoutput}" > "${TMP_LOGFILE}"
+        printf "[%s]  [%s]  [%s]  [%s]\n%s\n\n" "${date}" "${timestamp}" "${logtype}" "${logdescription}" "${logoutput}" > "${TMP_LOGFILE}"
     else
-        echo -E "${date},${timestamp},${logtype},${logdescription},${logoutput}" >> "${TMP_LOGFILE}"
+        printf "[%s]  [%s]  [%s]  [%s]\n%s\n\n" "${date}" "${timestamp}" "${logtype}" "${logdescription}" "${logoutput}" >> "${TMP_LOGFILE}"
     fi
 }
 
@@ -660,7 +660,7 @@ then
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
     echo ""
     sleep 0.5
-    read -r -p "${green}Enter a Number for the Server ID you want to test against: ${std}" n;
+    read -r -p "${green}Enter a Number for the Server ID you want to test against:${std} " n;
     while ! [[ $n =~ ^[1-9][0-9]{0,2}$ && $n -le ${#SERVER_IDS[@]} ]]
     do
             echo ""
