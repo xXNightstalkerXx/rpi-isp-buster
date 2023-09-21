@@ -345,7 +345,7 @@ echo ""
 LOGDESC="Installing Utilities"
 echo "${blue}${LOGDESC}...${std}"
 echo ""
-LOGOUTPUT=$(sudo apt-get install -y apt-transport-https gnupg1 dirmngr lsb-release)
+LOGOUTPUT=$(sudo apt-get install -y apt-transport-https gnupg1 dirmngr lsb-release iperf3)
 echo "${LOGOUTPUT}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 echo ""
@@ -591,8 +591,8 @@ then
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
     echo ""
     sleep 0.5
-    LOGOUTPUT=$(sudo sed -i "s/^target_ip = None/target_ip = ${ip_address}/" ${PYTHON_FILE} 2>&1)
-    LOGOUTPUT="sudo sed -i 's/^target_ip = None/target_ip = ${ip_address}/' ${PYTHON_FILE}; ${LOGOUTPUT}"
+    LOGOUTPUT=$(sudo sed -i "s/^target_ip = None/target_ip = '${ip_address}'/" ${PYTHON_FILE} 2>&1)
+    LOGOUTPUT="sudo sed -i 's/^target_ip = None/target_ip = '${ip_address}'/' ${PYTHON_FILE}; ${LOGOUTPUT}"
     echo "${LOGOUTPUT}"
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
     echo ""
@@ -656,7 +656,7 @@ then
             ((COUNTER++))
         fi
     done
-    echo "${LOGOUTPUT}"
+    printf "%s" "${LOGOUTPUT}"
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
     echo ""
     sleep 0.5
@@ -682,8 +682,8 @@ then
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
     echo ""
     sleep 0.5
-    LOGOUTPUT=$(sudo sed -i "s/^target_id = None/target_id = ${SERVER_ID}/" ${PYTHON_FILE} 2>&1)
-    LOGOUTPUT="sudo sed -i 's/^target_id = None/target_id = ${SERVER_ID}/' ${PYTHON_FILE}; ${LOGOUTPUT}"
+    LOGOUTPUT=$(sudo sed -i "s/^target_id = None/target_id = '${SERVER_ID}'/" ${PYTHON_FILE} 2>&1)
+    LOGOUTPUT="sudo sed -i 's/^target_id = None/target_id = '${SERVER_ID}'/' ${PYTHON_FILE}; ${LOGOUTPUT}"
     echo "${LOGOUTPUT}"
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
     echo ""
