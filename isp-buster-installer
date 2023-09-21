@@ -450,7 +450,7 @@ echo "${blue}${LOGOUTPUT}...${std}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 echo ""
 sleep 0.5
-LOGOUTPUT=$(sudo git clone ${GIT_ISPBUSTER} 2>&1)
+LOGOUTPUT=$(sudo git clone ${GIT_ISPBUSTER})
 echo "${LOGOUTPUT}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 echo ""
@@ -642,6 +642,7 @@ then
     sleep 0.5
     RESULTS=$(speedtest -L)
     LOGOUTPUT=$(printf "%s   %s   %s\n" "Number" "Server ID" "Server Name")
+    echo "${LOGOUTPUT}"
     COUNTER=1
     IFS=$'\n'
     for LINE in ${RESULTS}; do
@@ -651,12 +652,12 @@ then
             SERVER_NAME=$(echo "$SERVER_NAME" | sed -E 's/^(.*?)[[:space:]]{2,}.*$/\1/')
             SERVER_NAME=$(echo "$SERVER_NAME" | sed -E 's/[[:space:]]+[[:alpha:]]+[[:space:]]*$//')
             FORMATTED_LINE=$(printf "%3s   %12s   %s\n" "$COUNTER." "$SERVER_ID" "$SERVER_NAME")
+            echo "${FORMATTED_LINE}"
             LOGOUTPUT="${LOGOUTPUT}${FORMATTED_LINE}"
             SERVER_IDS[COUNTER]=$SERVER_ID
             ((COUNTER++))
         fi
     done
-    printf "%s" "${LOGOUTPUT}"
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
     echo ""
     sleep 0.5
