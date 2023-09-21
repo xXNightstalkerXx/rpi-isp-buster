@@ -802,23 +802,41 @@ sleep 1
 
 echo ""
 echo ""
-echo "${blue}Cleaning up the Installation...${std}"
+LOGDESC="Cleaning up the Installation"
+echo "${blue}${LOGDESC}...${std}"
 echo ""
-echo "${blue}Checking if I exist in the Directory I'm run...${std}"
+LOGOUTPUT="Checking if I exist in the Directory I'm run"
+echo "${blue}${LOGOUTPUT}...${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+sleep 0.5
 if [ -f "${MY_PATH}" ]
 then
-	echo "${blue}It seems I still exist. Purging myself now for Cleanup...${std}"
+    LOGOUTPUT="It seems I still exist. Purging myself now for Cleanup"
+    echo "${blue}${LOGOUTPUT}...${std}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
 	i_exist=true
 else
-	echo "${red}It seems I don't exist in the Directory I'm run. Not able to clean myself up!${std}"
+    LOGOUTPUT="It seems I don't exist in the Directory I'm run. Not able to clean myself up!"
+    echo "${red}${LOGOUTPUT}${std}"
+    write_logfile "${LOGTYPE_WARNING}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
 	i_exist=false
 fi
 
 echo ""
-echo "${blue}Cleanup complete! Continuing the Installation!${std}"
+LOGOUTPUT="Cleanup complete! Continuing the Installation!"
+echo "${blue}${LOGOUTPUT}${std}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 sleep 1
 
 echo ""
+echo ""
+LOGDESC="Rebooting after Installation"
+echo "${blue}${LOGDESC}...${std}"
 echo ""
 echo "${green}It is highly recommended to reboot after Installation!${std}"
 echo "${green}Do you want to reboot now?${std}"
@@ -834,20 +852,33 @@ done
 if [[ "$n" =~ ^(y)$ ]];
 then
 	echo ""
-	echo "${green}Installation complete! Rebooting now...${std}"
+    LOGOUTPUT="Installation complete! Rebooting now"
+    echo "${blue}${LOGOUTPUT}...${std}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    sleep 0.5
 	if $i_exist
 	then
-		sudo rm "${MY_PATH}"
+		LOGOUTPUT=$(sudo rm "${MY_PATH}")
+        LOGOUTPUT="sudo rm ${MY_PATH}; ${LOGOUTPUT}"
+        write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+        sleep 0.5
 	fi
 	sudo reboot now
 	sleep 1
 else
 	echo ""
-	echo "${red}Installation complete! Not Rebooting!${std}"
-	echo "${red}Please reboot your System whenever it is convenient!${std}"
+    LOGOUTPUT="Installation complete! Not Rebooting!"
+    echo "${red}${LOGOUTPUT}${std}"
+    echo "${red}Please reboot your System whenever it is convenient!${std}"
+    write_logfile "${LOGTYPE_WARNING}" "${LOGDESC}" "${LOGOUTPUT}"
+    sleep 0.5
 	if $i_exist
 	then
-		sudo rm "${MY_PATH}"
+        LOGOUTPUT=$(sudo rm "${MY_PATH}")
+        LOGOUTPUT="sudo rm ${MY_PATH}; ${LOGOUTPUT}"
+        write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+        sleep 0.5
 	fi
 	sleep 1
 fi
