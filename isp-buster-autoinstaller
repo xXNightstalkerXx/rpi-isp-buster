@@ -1,1 +1,520 @@
 #!/bin/bash
+
+# General Directory Declarations
+START_DIR=$PWD
+INSTALL_DIR=/etc/isp-buster
+RESULTS_DIR="${INSTALL_DIR}/results"
+LOGS_DIR="${INSTALL_DIR}/logs"
+BAK_DIR="${INSTALL_DIR}/backup"
+CLONE_DIR="${INSTALL_DIR}/isp-buster"
+SCRIPTS_DIR=/usr/bin/
+
+# Filename Declarations
+MY_PATH="${START_DIR}/isp-buster-installer"
+PYTHON_FILE="${CLONE_DIR}/speedtest.py"
+ISP_BUSTER_FILE="${CLONE_DIR}/isp-buster"
+INSTALLER_FILE="${CLONE_DIR}/isp-buster-installer"
+UNINSTALLER_FILE="${CLONE_DIR}/isp-buster-uninstaller"
+AUTOINSTALLER_FILE="${CLONE_DIR}/isp-buster-autoinstaller"
+CRON_FILE="${CLONE_DIR}/crontab"
+TMP_CRON_FILE="${CLONE_DIR}/crontab_tmp"
+NEW_CRON_FILE="${CLONE_DIR}/crontab.new"
+BAK_CRON_FILE="${BAK_DIR}/crontab.bak"
+LOGFILE="${LOGS_DIR}/isp-buster_installation_log.txt"
+TMP_LOGFILE="/home/${USER}/isp-buster_tmp_installation_log.txt"
+APT_LIST="/etc/apt/sources.list.d/speedtest.list"
+
+# Logtype Declarations
+PRINTTYPE_DESC="DESC"
+PRINTTYPE_DOTS="DOTS"
+PRINTTYPE_TEXT="TEXT"
+PRINTTYPE_FUNCTION="FUNCTION"
+
+# Logtype Declarations
+LOGTYPE_INFO="INFO"
+LOGTYPE_WARNING="WARNING"
+LOGTYPE_ERROR="ERROR"
+
+# Cronstring Declaration
+CRON_STRING="*/30 * * * * /usr/bin/isp-buster"
+
+# Git URL Declarations
+GIT_ISPBUSTER="https://github.com/xXNightstalkerXx/isp-buster.git"
+
+# Color Declarations
+STD=$(tput setaf 15)
+RED=$(tput setaf 9 bold)
+GREEN=$(tput setaf 10 bold)
+# yellow=$(tput setaf 11 bold)
+# pink=$(tput setaf 57)
+BLUE=$(tput setaf 27 bold)
+
+# Function Decalarations
+write_logfile () {
+    logtype="$1"
+    logdescription="$2"
+    logoutput="$3"
+    date=$(date +"%d/%m/%y")
+    timestamp=$(date +"%H:%M:%S")
+
+    if ! [ -f "${LOGFILE}" ]
+    then
+        printf "[%s]  [%s]  [%s]  [%s]\n%s\n\n" "${date}" "${timestamp}" "${logtype}" "${logdescription}" "${logoutput}" > "${LOGFILE}"
+    else
+        printf "[%s]  [%s]  [%s]  [%s]\n%s\n\n" "${date}" "${timestamp}" "${logtype}" "${logdescription}" "${logoutput}" >> "${LOGFILE}"
+    fi
+}
+
+write_tmp_logfile () {
+    logtype="$1"
+    logdescription="$2"
+    logoutput="$3"
+    date=$(date +"%d/%m/%y")
+    timestamp=$(date +"%H:%M:%S")
+
+    if ! [ -f "${TMP_LOGFILE}" ]
+    then
+        printf "[%s]  [%s]  [%s]  [%s]\n%s\n\n" "${date}" "${timestamp}" "${logtype}" "${logdescription}" "${logoutput}" > "${TMP_LOGFILE}"
+    else
+        printf "[%s]  [%s]  [%s]  [%s]\n%s\n\n" "${date}" "${timestamp}" "${logtype}" "${logdescription}" "${logoutput}" >> "${TMP_LOGFILE}"
+    fi
+}
+
+printlog () {
+    printtype="$1"
+    color="$2"
+    logdescription="$3"
+    logtype="$4"
+    input="$5"
+
+    sleep 0.5
+    if [[ $printtype == "DESC" ]]
+    then
+        echo ""
+        echo ""
+        echo "${color}${logdescription}...${STD}"
+        echo ""
+    elif [[ $printtype == "DOTS" ]]
+    then
+        logoutput="${input}"
+        echo "${color}${input}...${STD}"
+        write_logfile "${logtype}" "${logdescription}" "${logoutput}"
+    elif [[ $printtype == "TEXT" ]]
+    then
+        logoutput="${input}"
+        echo "${color}${logoutput}${STD}"
+        write_logfile "${logtype}" "${logdescription}" "${logoutput}"
+    elif [[ $printtype == "FUNCTION" ]]
+    then
+        functionoutput=$(${input})
+        logoutput="${input}; ${LOGOUTPUT}"
+        echo "${logoutput}"
+        error="${logoutput#*;}"
+        if [[ -n "$error" ]]
+        then
+            logtype="$LOGTYPE_ERROR"
+        fi
+        write_logfile "${logtype}" "${logdescription}" "${logoutput}"
+        return "${functionoutput}"
+    fi
+}
+
+printlog_tmp () {
+    printtype="$1"
+    color="$2"
+    logdescription="$3"
+    logtype="$4"
+    input="$5"
+
+    sleep 0.5
+    if [[ $printtype == "DESC" ]]
+    then
+        echo ""
+        echo ""
+        echo "${color}${logdescription}...${STD}"
+        echo ""
+    elif [[ $printtype == "DOTS" ]]
+    then
+        logoutput="${input}"
+        echo "${color}${input}...${STD}"
+        write_tmp_logfile "${logtype}" "${logdescription}" "${logoutput}"
+    elif [[ $printtype == "TEXT" ]]
+    then
+        logoutput="${input}"
+        echo "${color}${logoutput}${STD}"
+        write_tmp_logfile "${logtype}" "${logdescription}" "${logoutput}"
+    elif [[ $printtype == "FUNCTION" ]]
+    then
+        functionoutput=$(${input})
+        logoutput="${input}; ${LOGOUTPUT}"
+        echo "${logoutput}"
+        error="${logoutput#*;}"
+        if [[ -n "$error" ]]
+        then
+            logtype="$LOGTYPE_ERROR"
+        fi
+        write_tmp_logfile "${logtype}" "${logdescription}" "${logoutput}"
+        return "${functionoutput}"
+    fi
+}
+
+# Main Script
+echo ""
+echo ""
+echo "${BLUE} ___  ________  ________        ________  ___  ___  ________  _________  _______   ________${STD}"
+echo "${BLUE}|\  \|\   ____\|\   __  \      |\   __  \|\  \|\  \|\   ____\|\___   ___|\  ___ \ |\   __  \\${STD}"
+echo "${BLUE}\ \  \ \  \___|\ \  \|\  \     \ \  \|\ /\ \  \\\\\  \ \  \___|\|___ \  \_\ \   __/|\ \  \|\  \\${STD}"
+echo "${BLUE} \ \  \ \_____  \ \   ____\     \ \   __  \ \  \\\\\  \ \_____  \   \ \  \ \ \  \_|/_\ \   _  _\\${STD}"
+echo "${BLUE}  \ \  \|____|\  \ \  \___|      \ \  \|\  \ \  \\\\\  \|____|\  \   \ \  \ \ \  \_|\ \ \  \\\  \|${STD}"
+echo "${BLUE}   \ \__\____\_\  \ \__\          \ \_______\ \_______\____\_\  \   \ \__\ \ \_______\ \__\\\ _\\${STD}"
+echo "${BLUE}    \|__|\_________\|__|           \|_______|\|_______|\_________\   \|__|  \|_______|\|__|\|__|${STD}"
+echo "${BLUE}        \|_________|                                  \|_________|${STD}"
+echo "ISP Buster Speedtest Tool by Nightstalker"
+
+LOGDESC="Checking OS"
+printlog_tmp "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking OS"
+os_type="$(grep -E '^(NAME)=' /etc/os-release)"
+os_type=${os_type#*=}
+
+if [[ "$os_type" == *"Kali"* ]]
+then
+	INSTALL_OPTIONS=1
+	echo ""
+	echo "$os_type"
+    LOGOUTPUT="${os_type}"
+    write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+elif [[ "$os_type" == *"Raspbian"* ]]
+then
+	if [[ $(cat /boot/issue.txt) == *"stage2"* ]]
+	then
+		INSTALL_OPTIONS=2
+		echo ""
+		echo "$os_type"
+        echo " Lite Version"
+        LOGOUTPUT="${os_type} - Lite Version"
+        write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+	elif [[ $(cat /boot/issue.txt) == *"stage4"* ]]
+	then
+		INSTALL_OPTIONS=3
+		echo ""
+		echo "$os_type"
+		echo " GUI Lite Version"
+        LOGOUTPUT="${os_type} - GUI Lite Version"
+        write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+	elif [[ $(cat /boot/issue.txt) == *"stage5"* ]]
+	then
+		INSTALL_OPTIONS=3
+		echo ""
+		echo "$os_type"
+		echo " GUI Full Version"
+        LOGOUTPUT="${os_type} - GUI Full Version"
+        write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+	else
+		INSTALL_OPTIONS=2
+		echo ""
+		echo "$os_type"
+		echo " Unknown Raspbian"
+		echo " Using Lite Version Install Options!"
+        LOGOUTPUT="${os_type} - Unknown Raspbian"
+        write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+	fi
+else
+	echo ""
+    printlog_tmp "$PRINTTYPE_TEXT" "$RED" "$LOGDESC" "$LOGTYPE_ERROR" "Wrong Operating System detected! Aborting the Installation!"
+	sleep 1
+	exit 1
+fi
+echo ""
+printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Operating System okay! Continuing the Installation!"
+sleep 1
+
+LOGDESC="Checking Directories"
+printlog_tmp "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking Directories"
+printlog_tmp "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking ${INSTALL_DIR} Directory"
+if [ -d "${INSTALL_DIR}" ]
+then
+    printlog_tmp "$PRINTTYPE_TEXT" "$GREEN" "$LOGDESC" "$LOGTYPE_WARNING" "${INSTALL_DIR} Directory exists. Not Creating this Directory!"
+else
+    printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "${INSTALL_DIR} Directory doesn't exist. Creating the Directory!"
+    printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo mkdir -p ${INSTALL_DIR}"
+fi
+
+printlog_tmp "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking ${RESULTS_DIR} Directory"
+if [ -d "${RESULTS_DIR}" ]
+then
+    printlog_tmp "$PRINTTYPE_TEXT" "$GREEN" "$LOGDESC" "$LOGTYPE_WARNING" "${RESULTS_DIR} Directory exists. Not Creating this Directory!"
+else
+    printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "${RESULTS_DIR} Directory doesn't exist. Creating the Directory!"
+    printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo mkdir -p ${RESULTS_DIR}"
+fi
+
+printlog_tmp "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking ${LOGS_DIR} Directory"
+if [ -d "${LOGS_DIR}" ]
+then
+	printlog_tmp "$PRINTTYPE_TEXT" "$GREEN" "$LOGDESC" "$LOGTYPE_WARNING" "${LOGS_DIR} Directory exists. Not Creating this Directory!"
+else
+	printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "${LOGS_DIR} Directory doesn't exist. Creating the Directory!"
+    printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo mkdir -p ${LOGS_DIR}"
+fi
+
+printlog_tmp "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking ${BAK_DIR} Directory"
+if [ -d "${BAK_DIR}" ]
+then
+	printlog_tmp "$PRINTTYPE_TEXT" "$GREEN" "$LOGDESC" "$LOGTYPE_WARNING" "${BAK_DIR} Directory exists. Not Creating this Directory!"
+else
+	printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "${BAK_DIR} Directory doesn't exist. Creating the Directory!"
+    printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo mkdir -p ${BAK_DIR}"
+fi
+echo ""
+printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Directories are okay! Continuing the Installation!"
+sleep 1
+
+LOGDESC="Moving Temporary Logfile"
+printlog_tmp "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Moving Temporary Logfile"
+printlog_tmp "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Moving temporary Logfile to ${LOGS_DIR}"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo mv ${TMP_LOGFILE} ${LOGFILE}"
+echo ""
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Logfile moved successfully! Continuing Installation!"
+sleep 1
+
+LOGDESC="Installing Utilities"
+printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Installing Utilities"
+LOGOUTPUT=$(sudo apt-get install -y apt-transport-https gnupg1 dirmngr lsb-release iperf3)
+echo "${LOGOUTPUT}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Utilities installed successfully! Continuing Installation!"
+sleep 1
+
+LOGDESC="Installing Ookla Repository Key"
+printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Installing Ookla Repository Key"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "curl -L https://packagecloud.io/ookla/speedtest-cli/gpgkey | gpg --dearmor | sudo tee /usr/share/keyrings/speedtestcli-archive-keyring.gpg 1> /dev/null 2>&1"
+echo ""
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Ookla Repository Key installed successfully! Continuing Installation!"
+sleep 1
+
+LOGDESC="Adding Ookla Repository to APT Repository Lists"
+printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Adding Ookla Repository to APT Repository Lists"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "echo \"deb [signed-by=/usr/share/keyrings/speedtestcli-archive-keyring.gpg] https://packagecloud.io/ookla/speedtest-cli/debian/ $(lsb_release -cs) main\" | sudo tee ${APT_LIST} 1> /dev/null"
+echo ""
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Ookla Repository successfully added to APT Repository Lists! Continuing Installation!"
+sleep 1
+
+LOGDESC="Updating Repository List again"
+printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Updating Repository List again"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo apt-get update"
+echo ""
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Repository List updated! Continuing Installation!"
+sleep 1
+
+LOGDESC="Installing the Speedtest Binary"
+printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Installing the Speedtest Binary"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo apt-get install -y speedtest"
+echo ""
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Speedtest Binaries installed successfully! Continuing Installation!"
+sleep 1
+
+LOGDESC="Launching the initial Speedtest"
+printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Launching the initial Speedtest"
+LOGOUTPUT=$(sudo speedtest --accept-license --accept-gdpr 2>&1)
+echo "${LOGOUTPUT}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Speedtest tested successfully! Continuing Installation!"
+sleep 1
+
+LOGDESC="Downloading ISP-Buster Github Repository"
+printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Downloading ISP-Buster Github Repository"
+printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Changing Directory to ${INSTALL_DIR}"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "cd ${INSTALL_DIR} 2>&1"
+cd "${INSTALL_DIR}" &> /dev/null
+printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Downloading Repository"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo git clone ${GIT_ISPBUSTER} 2>&1"
+echo ""
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Repository successfully downloaded! Continuing Installation!"
+sleep 1
+
+LOGDESC="Making Scripts executable"
+printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Making Scripts executable"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo chmod 0755 ${PYTHON_FILE}"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo chmod 0755 ${ISP_BUSTER_FILE}"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo chmod 0755 ${INSTALLER_FILE}"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo chmod 0755 ${UNINSTALLER_FILE}"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo chmod 0755 ${AUTOINSTALLER_FILE}"
+echo ""
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Successfully made Scripts executable! Continuing Installation!"
+sleep 1
+
+LOGDESC="Copying Scripts to ${SCRIPTS_DIR}"
+printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Copying Scripts to ${SCRIPTS_DIR}"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo cp ${ISP_BUSTER_FILE} ${SCRIPTS_DIR}"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo cp ${UNINSTALLER_FILE} ${SCRIPTS_DIR}"
+echo ""
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Successfully copied Scripts to ${SCRIPTS_DIR}! Continuing Installation!"
+sleep 1
+
+LOGDESC="Setting up IPerf3"
+printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Setting up IPerf3"
+printlog "$PRINTTYPE_TEXT" "$GREEN" "$LOGDESC" "$LOGTYPE_INFO" "Do you have an IPerf3 Host on your Firewall?"
+echo ""
+echo "1. Switch on IPerf3 Network testing"
+echo "2. Don't use IPerf3"
+echo ""
+read -r -p "${GREEN}Enter a Number for an Option: ${STD}" n;
+while ! [[ $n =~ ^[1-2]$ ]]
+do
+    echo ""
+    printlog "$PRINTTYPE_TEXT" "$RED" "$LOGDESC" "$LOGTYPE_WARNING" "Wrong Input! Please enter a Number for an Option!"
+    read -r -p "Enter a Number for an Option: " n;
+done
+if [[ "$n" =~ ^(1)$ ]];
+then
+    echo ""
+    printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Select IPerf3 Host IPv4"
+    echo ""
+	read -r -p "${GREEN}Enter the IPv4 of the IPerf Host: ${STD}" ip_address;
+    echo ""
+    printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking if the Host is reachable"
+	if ping -c 1 "$ip_address" &> /dev/null
+	then
+        printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "The Host is reachable!"
+		i=1
+	else
+		i=0
+	fi
+	while [[ $i -eq 0 ]]
+	do
+        printlog "$PRINTTYPE_TEXT" "$RED" "$LOGDESC" "$LOGTYPE_WARNING" "The Host is not reachable! Please try a different IP!"
+		read -r -p "Enter the IP of the NAS Server: " ip_address;
+		echo ""
+        printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking if the Host is reachable"
+		if ping -c 1 "$ip_address" &> /dev/null
+		then
+            printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "The Host is reachable!"
+			i=1
+		else
+			i=0
+		fi
+	done
+    printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Changing IPerf to True and Host IPv4 within ${PYTHON_FILE}"
+    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo sed -i "s/^iperf = False/iperf = True/" ${PYTHON_FILE} 1> /dev/null"
+    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo sed -i "s/^target_ip = None/target_ip = "${ip_address}"/" ${PYTHON_FILE} 1> /dev/null"
+else
+    echo ""
+    printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Not switching ON IPerf3!"
+fi
+echo ""
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "IPerf3 successfully set up! Continuing Installation!"
+sleep 1
+
+LOGDESC="Setting up Server ID"
+printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Setting up Server ID"
+printlog "$PRINTTYPE_TEXT" "$GREEN" "$LOGDESC" "$LOGTYPE_INFO" "Do you want to change the Server ID to a specific one?"
+echo ""
+echo "1. Change the Server ID"
+echo "2. Choose Best at Runtime"
+echo ""
+read -r -p "${GREEN}Enter a Number for an Option: ${STD}" n;
+while ! [[ $n =~ ^[1-2]$ ]]
+do
+    echo ""
+    echo "${RED}Wrong Input! Please enter a Number for an Option!${STD}"
+    read -r -p "Enter a Number for an Option: " n;
+done
+if [[ "$n" =~ ^(1)$ ]];
+then
+    echo ""
+    printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Searching for Servers to display"
+    RESULTS=$(speedtest -L)
+    LOG_LINES+=("--------------------------------------------------------------------------------------------------------")
+    FORMATTED_LINE=$(printf " %-10s %-15s %-50s %-30s" "[Number]" "[Server ID]" "[Server Name]" "[Server Location]")
+    LOG_LINES+=("$FORMATTED_LINE")
+    LOG_LINES+=("--------------------------------------------------------------------------------------------------------")
+    COUNTER=1
+    IFS=$'\n'
+    for LINE in ${RESULTS}
+    do
+        if [[ ${LINE} =~ ^[[:space:]]*([0-9]+)[[:space:]]+([[:alnum:][:space:]-]+)$ ]]
+        then
+            SERVER_ID=${BASH_REMATCH[1]}
+            SERVER_NAME=${BASH_REMATCH[2]}
+            SERVER_NAME=$(echo "$SERVER_NAME" | sed -E 's/[[:space:]]+[[:alpha:]]+[[:space:]]*$//')
+            SERVER_NAME=$(echo "$SERVER_NAME" | sed -E 's/^[[:space:]]+//;s/[[:space:]]+$//')
+            if [[ "$SERVER_NAME" == *"  "* ]]
+            then
+                SERVER_CITY=$(echo "$SERVER_NAME" | sed -E 's/.*[[:space:]]{2,}//')
+            else
+                SERVER_CITY=$(echo "$SERVER_NAME" | awk '{print $NF}')
+            fi
+            SERVER_NAME=$(echo "$SERVER_NAME" | sed -E "s/(.*)[[:space:]]+${SERVER_CITY}/\1/")
+            FORMATTED_LINE=$(printf " %-10s %-15s %-50s %-30s" "$COUNTER." "$SERVER_ID" "$SERVER_NAME" "$SERVER_CITY")
+            LOG_LINES+=("$FORMATTED_LINE")
+            SERVER_IDS[COUNTER]=$SERVER_ID
+            ((COUNTER++))
+        fi
+    done
+    LOGOUTPUT=$(printf "%s\n" "${LOG_LINES[@]}")
+    echo "${LOGOUTPUT}"
+    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    read -r -p "${GREEN}Enter a Number for the Server ID you want to test against:${STD} " n;
+    while ! [[ $n =~ ^[1-9][0-9]{0,2}$ && $n -le ${#SERVER_IDS[@]} ]]
+    do
+        echo ""
+        echo "${RED}Wrong Input! Please enter a Number for the Server ID!${STD}"
+        read -r -p "Enter a Number for the Server ID: " n;
+    done
+    SERVER_ID="${SERVER_IDS[$n]}"
+    echo ""
+    printlog "$PRINTTYPE_TEXT" "$GREEN" "$LOGDESC" "$LOGTYPE_INFO" "You selected the following Server ID:"
+    printlog "$PRINTTYPE_TEXT" "$STD" "$LOGDESC" "$LOGTYPE_INFO" "${SERVER_ID}"
+    echo ""
+    printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Changing Server ID within ${PYTHON_FILE}"
+    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo sed -i "s/^target_id = None/target_id = "${SERVER_ID}"/" ${PYTHON_FILE} 2>&1"
+else
+    printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_WARNING" "Not changing Server ID within ${PYTHON_FILE}!"
+fi
+echo ""
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Server ID successfully set up! Continuing Installation!"
+sleep 1
+
+LOGDESC="Setting up Crontab"
+printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Setting up Crontab"
+printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking if there already is a Crontab"
+LOGOUTPUT=$(printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo crontab -u root -l 1> /dev/null")
+if [[ "${LOGOUTPUT}" == *no\ crontab\ for\ root* ]]
+then
+    printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_WARNING" "There's no Crontab! Creating one now"
+    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo crontab -u root ${CRON_FILE} 1> /dev/null"
+    printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Copying a fresh Crontab File into the Backup Directory"
+    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo cp ${NEW_CRON_FILE} ${BAK_CRON_FILE} 1> /dev/null"
+else
+    printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Creating a backup of the Crontab"
+    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo crontab -u root -l | sudo tee ${BAK_CRON_FILE} 1> /dev/null"
+    printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Copying backup File"
+    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo cp ${BAK_CRON_FILE} ${TMP_CRON_FILE}"
+    printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Inserting Cronjob into File"
+    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "echo ${CRON_STRING} | sudo tee -a ${TMP_CRON_FILE} 1> /dev/null"
+    printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Updating crontab with the File"
+    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo crontab -u root ${TMP_CRON_FILE} 1> /dev/null"
+    printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Removing Temporary File"
+    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo rm ${TMP_CRON_FILE} 1> /dev/null"
+fi
+echo ""
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Successfully created Cronjob! Continuing Installation!"
+sleep 1
+
+LOGDESC="Cleaning up the Installation"
+printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Cleaning up the Installation"
+printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking if I exist in the Directory I'm run"
+if [ -f "${MY_PATH}" ]
+then
+    printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "It seems I still exist. Purging myself now for Cleanup"
+	printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo rm ${MY_PATH}"
+else
+    printlog "$PRINTTYPE_TEXT" "$RED" "$LOGDESC" "$LOGTYPE_WARNING" "It seems I don't exist in the Directory I'm run. Not able to clean myself up!"
+fi
+
+echo ""
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Cleanup complete! Continuing the Installation!"
+sleep 1
