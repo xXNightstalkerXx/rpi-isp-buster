@@ -115,7 +115,12 @@ printlog () {
             logtype="$LOGTYPE_ERROR"
         fi
         write_logfile "${logtype}" "${logdescription}" "${logoutput}"
-        return "${functionoutput}"
+        if [[ "${functionoutput}" == *no\ crontab\ for\ root* ]]
+        then
+            return 1
+        else
+            return 0
+        fi
     fi
 }
 
@@ -154,7 +159,12 @@ printlog_tmp () {
             logtype="$LOGTYPE_ERROR"
         fi
         write_tmp_logfile "${logtype}" "${logdescription}" "${logoutput}"
-        return "${functionoutput}"
+        if [[ "${functionoutput}" == *no\ crontab\ for\ root* ]]
+        then
+            return 1
+        else
+            return 0
+        fi
     fi
 }
 
@@ -476,7 +486,7 @@ LOGDESC="Setting up Crontab"
 printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Setting up Crontab"
 printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking if there already is a Crontab"
 LOGOUTPUT=$(printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo crontab -u root -l 1> /dev/null")
-if [[ "${LOGOUTPUT}" == *no\ crontab\ for\ root* ]]
+if [[ $LOGOUTPUT = 1 ]]
 then
     printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_WARNING" "There's no Crontab! Creating one now"
     printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo crontab -u root ${CRON_FILE} 1> /dev/null"
