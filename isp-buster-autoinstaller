@@ -106,8 +106,8 @@ printlog () {
         write_logfile "${logtype}" "${logdescription}" "${logoutput}"
     elif [[ $printtype == "FUNCTION" ]]
     then
-        functionoutput=$(${input})
-        logoutput="${input}; ${functionoutput}"
+        functionoutput=$($input)
+        logoutput="$input; ${functionoutput}"
         echo "${logoutput}"
         error="${logoutput#*;}"
         if [[ -n "$error" ]]
@@ -125,11 +125,11 @@ printlog () {
 }
 
 printlog_tmp () {
-    printtype="$1"
-    color="$2"
-    logdescription="$3"
-    logtype="$4"
-    input="$5"
+    printtype=$1
+    color=$2
+    logdescription=$3
+    logtype=$4
+    input=$5
 
     sleep 0.5
     if [[ $printtype == "DESC" ]]
@@ -150,8 +150,8 @@ printlog_tmp () {
         write_tmp_logfile "${logtype}" "${logdescription}" "${logoutput}"
     elif [[ $printtype == "FUNCTION" ]]
     then
-        functionoutput=$(${input})
-        logoutput="${input}; ${functionoutput}"
+        functionoutput=$($input)
+        logoutput="$input; ${functionoutput}"
         echo "${logoutput}"
         error="${logoutput#*;}"
         if [[ -n "$error" ]]
