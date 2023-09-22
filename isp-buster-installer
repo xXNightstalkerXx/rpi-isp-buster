@@ -25,6 +25,12 @@ TMP_LOGFILE="/home/${USER}/isp-buster_tmp_installation_log.txt"
 APT_LIST="/etc/apt/sources.list.d/speedtest.list"
 
 # Logtype Declarations
+PRINTTYPE_DESC="DESC"
+PRINTTYPE_DOTS="DOTS"
+PRINTTYPE_TEXT="TEXT"
+PRINTTYPE_FUNCTION="FUNCTION"
+
+# Logtype Declarations
 LOGTYPE_INFO="INFO"
 LOGTYPE_WARNING="WARNING"
 LOGTYPE_ERROR="ERROR"
@@ -36,18 +42,18 @@ CRON_STRING="*/30 * * * * /usr/bin/isp-buster"
 GIT_ISPBUSTER="https://github.com/xXNightstalkerXx/isp-buster.git"
 
 # Color Declarations
-std=$(tput setaf 15)
-red=$(tput setaf 9 bold)
-green=$(tput setaf 10 bold)
+STD=$(tput setaf 15)
+RED=$(tput setaf 9 bold)
+GREEN=$(tput setaf 10 bold)
 # yellow=$(tput setaf 11 bold)
 # pink=$(tput setaf 57)
-blue=$(tput setaf 27 bold)
+BLUE=$(tput setaf 27 bold)
 
 # Function Decalarations
 write_logfile () {
     logtype="$1"
-    logoutput="$3"
     logdescription="$2"
+    logoutput="$3"
     date=$(date +"%d/%m/%y")
     timestamp=$(date +"%H:%M:%S")
 
@@ -61,8 +67,8 @@ write_logfile () {
 
 write_tmp_logfile () {
     logtype="$1"
-    logoutput="$3"
     logdescription="$2"
+    logoutput="$3"
     date=$(date +"%d/%m/%y")
     timestamp=$(date +"%H:%M:%S")
 
@@ -74,22 +80,89 @@ write_tmp_logfile () {
     fi
 }
 
+printlog () {
+    printtype="$1"
+    color="$2"
+    logdescription="$3"
+    logtype="$4"
+    input="$5"
+
+    sleep 0.5
+    if [[ $printtype == "DESC" ]]
+    then
+        echo ""
+        echo ""
+        echo "${color}${logdescription}...${STD}"
+        echo ""
+    elif [[ $printtype == "DOTS" ]]
+    then
+        logoutput="${input}"
+        echo "${color}${input}...${STD}"
+        write_logfile "${logtype}" "${logdescription}" "${logoutput}"
+    elif [[ $printtype == "TEXT" ]]
+    then
+        logoutput="${input}"
+        echo "${color}${logoutput}${STD}"
+        write_logfile "${logtype}" "${logdescription}" "${logoutput}"
+    elif [[ $printtype == "FUNCTION" ]]
+    then
+        functionoutput=$(${input})
+        logoutput="${input}; ${LOGOUTPUT}"
+        echo "${logoutput}"
+        write_logfile "${logtype}" "${logdescription}" "${logoutput}"
+        return "${functionoutput}"
+    fi
+}
+
+printlog_tmp () {
+    printtype="$1"
+    color="$2"
+    logdescription="$3"
+    logtype="$4"
+    input="$5"
+
+    sleep 0.5
+    if [[ $printtype == "DESC" ]]
+    then
+        echo ""
+        echo ""
+        echo "${color}${logdescription}...${STD}"
+        echo ""
+    elif [[ $printtype == "DOTS" ]]
+    then
+        logoutput="${input}"
+        echo "${color}${input}...${STD}"
+        write_tmp_logfile "${logtype}" "${logdescription}" "${logoutput}"
+    elif [[ $printtype == "TEXT" ]]
+    then
+        logoutput="${input}"
+        echo "${color}${logoutput}${STD}"
+        write_tmp_logfile "${logtype}" "${logdescription}" "${logoutput}"
+    elif [[ $printtype == "FUNCTION" ]]
+    then
+        functionoutput=$(${input})
+        logoutput="${input}; ${LOGOUTPUT}"
+        echo "${logoutput}"
+        write_tmp_logfile "${logtype}" "${logdescription}" "${logoutput}"
+        return "${functionoutput}"
+    fi
+}
+
 # Main Script
 echo ""
 echo ""
-echo "${blue} ___  ________  ________        ________  ___  ___  ________  _________  _______   ________${std}"
-echo "${blue}|\  \|\   ____\|\   __  \      |\   __  \|\  \|\  \|\   ____\|\___   ___|\  ___ \ |\   __  \\${std}"
-echo "${blue}\ \  \ \  \___|\ \  \|\  \     \ \  \|\ /\ \  \\\\\  \ \  \___|\|___ \  \_\ \   __/|\ \  \|\  \\${std}"
-echo "${blue} \ \  \ \_____  \ \   ____\     \ \   __  \ \  \\\\\  \ \_____  \   \ \  \ \ \  \_|/_\ \   _  _\\${std}"
-echo "${blue}  \ \  \|____|\  \ \  \___|      \ \  \|\  \ \  \\\\\  \|____|\  \   \ \  \ \ \  \_|\ \ \  \\\  \|${std}"
-echo "${blue}   \ \__\____\_\  \ \__\          \ \_______\ \_______\____\_\  \   \ \__\ \ \_______\ \__\\\ _\\${std}"
-echo "${blue}    \|__|\_________\|__|           \|_______|\|_______|\_________\   \|__|  \|_______|\|__|\|__|${std}"
-echo "${blue}        \|_________|                                  \|_________|${std}"
+echo "${BLUE} ___  ________  ________        ________  ___  ___  ________  _________  _______   ________${STD}"
+echo "${BLUE}|\  \|\   ____\|\   __  \      |\   __  \|\  \|\  \|\   ____\|\___   ___|\  ___ \ |\   __  \\${STD}"
+echo "${BLUE}\ \  \ \  \___|\ \  \|\  \     \ \  \|\ /\ \  \\\\\  \ \  \___|\|___ \  \_\ \   __/|\ \  \|\  \\${STD}"
+echo "${BLUE} \ \  \ \_____  \ \   ____\     \ \   __  \ \  \\\\\  \ \_____  \   \ \  \ \ \  \_|/_\ \   _  _\\${STD}"
+echo "${BLUE}  \ \  \|____|\  \ \  \___|      \ \  \|\  \ \  \\\\\  \|____|\  \   \ \  \ \ \  \_|\ \ \  \\\  \|${STD}"
+echo "${BLUE}   \ \__\____\_\  \ \__\          \ \_______\ \_______\____\_\  \   \ \__\ \ \_______\ \__\\\ _\\${STD}"
+echo "${BLUE}    \|__|\_________\|__|           \|_______|\|_______|\_________\   \|__|  \|_______|\|__|\|__|${STD}"
+echo "${BLUE}        \|_________|                                  \|_________|${STD}"
 echo "ISP Buster Speedtest Tool by Nightstalker"
-echo ""
-echo ""
+
 LOGDESC="Checking OS"
-echo "${blue}${LOGDESC}...${std}"
+printlog_tmp "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking OS"
 os_type="$(grep -E '^(NAME)=' /etc/os-release)"
 os_type=${os_type#*=}
 
@@ -137,507 +210,265 @@ then
 	fi
 else
 	echo ""
-    LOGOUTPUT="Wrong Operating System detected! Aborting the Installation!"
-	echo "${red}${LOGOUTPUT}${std}"
-    write_tmp_logfile "${LOGTYPE_ERROR}" "${LOGDESC}" "${LOGOUTPUT}"
+    printlog_tmp "$PRINTTYPE_TEXT" "$RED" "$LOGDESC" "$LOGTYPE_ERROR" "Wrong Operating System detected! Aborting the Installation!"
 	sleep 1
 	exit 1
 fi
-
 echo ""
-sleep 0.5
-LOGOUTPUT="Operating System okay! Continuing the Installation!"
-echo "${blue}${LOGOUTPUT}${std}"
-write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Operating System okay! Continuing the Installation!"
 sleep 1
 
-echo ""
-echo ""
 LOGDESC="Updating Repository List"
-echo "${blue}${LOGDESC}...${std}"
-echo ""
+printlog_tmp "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Updating Repository List"
 LOGOUTPUT=$(sudo apt-get update)
 echo "${LOGOUTPUT}"
 write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 echo ""
-sleep 0.5
-LOGOUTPUT="Repository List updated! Continuing Installation!"
-echo "${blue}${LOGOUTPUT}${std}"
-write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Repository List updated! Continuing Installation!"
 sleep 1
 
-echo ""
-echo ""
 LOGDESC="Update OS"
-echo "${green}It is highly recommended to update your OS before Installation!${std}"
-echo "${green}Do you want to update your OS?${std}"
+printlog_tmp "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Update OS"
+printlog_tmp "$PRINTTYPE_TEXT" "$GREEN" "$LOGDESC" "$LOGTYPE_INFO" "It is highly recommended to update your OS before Installation!"
+echo "${GREEN}Do you want to update your OS?${STD}"
 read -r -p "Yes (y)/ No (n): " n;
 
 while ! [[ "$n" =~ ^(y|n)$ ]];
 do
 	echo ""
-	echo "${red}Wrong Input! Please type 'y' for 'YES' or 'n' for 'NO'!${std}"
+	echo "${RED}Wrong Input! Please type 'y' for 'YES' or 'n' for 'NO'!${STD}"
 	read -r -p "Yes (y)/ No (n): " n;
 done
 
 if [[ "$n" =~ ^(y)$ ]];
 then
-	echo ""
-    LOGOUTPUT="Updating the OS now"
-	echo "${blue}${LOGDESC}...${std}"
-    write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-	echo ""
-	LOGOUTPUT=$(sudo apt-get upgrade -y)
+    echo ""
+    printlog_tmp "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Updating the OS now"
+    LOGOUTPUT=$(sudo apt-get upgrade -y)
     echo "${LOGOUTPUT}"
     write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-	echo ""
-    sleep 0.5
-    LOGOUTPUT="Operating System updated successfully! Continuing the Installation!"
-	echo "${blue}${LOGOUTPUT}${std}"
-    write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Operating System updated successfully! Continuing the Installation!"
 	sleep 1
 else
-	echo ""
-    LOGOUTPUT="Not updating your OS! Installation might fail!"
-	echo "${red}${LOGOUTPUT}${std}"
-    write_tmp_logfile "${LOGTYPE_WARNING}" "${LOGDESC}" "${LOGOUTPUT}"
+    echo ""
+    printlog_tmp "$PRINTTYPE_TEXT" "$RED" "$LOGDESC" "$LOGTYPE_WARNING" "Not updating your OS! Installation might fail!"
 	sleep 1
 fi
 
-echo ""
-echo ""
 LOGDESC="Checking Directories"
-echo "${blue}${LOGDESC}...${std}"
-echo ""
-
-LOGOUTPUT="Checking ${INSTALL_DIR} Directory"
-echo "${blue}${LOGOUTPUT}...${std}"
-write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-
+printlog_tmp "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking Directories"
+printlog_tmp "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking ${INSTALL_DIR} Directory"
 if [ -d "${INSTALL_DIR}" ]
 then
-    sleep 0.5
-    LOGOUTPUT="${INSTALL_DIR} Directory exists. Not Creating this Directory!"
-	echo "${green}${LOGOUTPUT}${std}"
-    write_tmp_logfile "${LOGTYPE_WARNING}" "${LOGDESC}" "${LOGOUTPUT}"
+    printlog_tmp "$PRINTTYPE_TEXT" "$GREEN" "$LOGDESC" "$LOGTYPE_WARNING" "${INSTALL_DIR} Directory exists. Not Creating this Directory!"
 else
-    sleep 0.5
-    LOGOUTPUT="${INSTALL_DIR} Directory doesn't exist. Creating the Directory!"
-	echo "${blue}${LOGOUTPUT}${std}"
-	sudo mkdir -p "${INSTALL_DIR}"
-    write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "${INSTALL_DIR} Directory doesn't exist. Creating the Directory!"
+    printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo mkdir -p ${INSTALL_DIR}"
 fi
 
-sleep 0.5
-LOGOUTPUT="Checking ${RESULTS_DIR} Directory"
-echo "${blue}${LOGOUTPUT}...${std}"
-write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-
+printlog_tmp "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking ${RESULTS_DIR} Directory"
 if [ -d "${RESULTS_DIR}" ]
 then
-	sleep 0.5
-    LOGOUTPUT="${RESULTS_DIR} Directory exists. Not Creating this Directory!"
-	echo "${green}${LOGOUTPUT}${std}"
-    write_tmp_logfile "${LOGTYPE_WARNING}" "${LOGDESC}" "${LOGOUTPUT}"
+    printlog_tmp "$PRINTTYPE_TEXT" "$GREEN" "$LOGDESC" "$LOGTYPE_WARNING" "${RESULTS_DIR} Directory exists. Not Creating this Directory!"
 else
-    sleep 0.5
-    LOGOUTPUT="${RESULTS_DIR} Directory doesn't exist. Creating the Directory!"
-	echo "${blue}${LOGOUTPUT}${std}"
-	sudo mkdir -p "${RESULTS_DIR}"
-    write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "${RESULTS_DIR} Directory doesn't exist. Creating the Directory!"
+    printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo mkdir -p ${RESULTS_DIR}"
 fi
 
-sleep 0.5
-LOGOUTPUT="Checking ${LOGS_DIR} Directory"
-echo "${blue}${LOGOUTPUT}...${std}"
-write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-
+printlog_tmp "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking ${LOGS_DIR} Directory"
 if [ -d "${LOGS_DIR}" ]
 then
-	sleep 0.5
-    LOGOUTPUT="${LOGS_DIR} Directory exists. Not Creating this Directory!"
-	echo "${green}${LOGOUTPUT}${std}"
-    write_tmp_logfile "${LOGTYPE_WARNING}" "${LOGDESC}" "${LOGOUTPUT}"
+	printlog_tmp "$PRINTTYPE_TEXT" "$GREEN" "$LOGDESC" "$LOGTYPE_WARNING" "${LOGS_DIR} Directory exists. Not Creating this Directory!"
 else
-	sleep 0.5
-    LOGOUTPUT="${LOGS_DIR} Directory doesn't exist. Creating the Directory!"
-	echo "${blue}${LOGOUTPUT}${std}"
-	sudo mkdir -p "${LOGS_DIR}"
-    write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+	printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "${LOGS_DIR} Directory doesn't exist. Creating the Directory!"
+    printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo mkdir -p ${LOGS_DIR}"
 fi
 
-sleep 0.5
-LOGOUTPUT="Checking ${BAK_DIR} Directory"
-echo "${blue}${LOGOUTPUT}...${std}"
-write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-
+printlog_tmp "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking ${BAK_DIR} Directory"
 if [ -d "${BAK_DIR}" ]
 then
-	sleep 0.5
-    LOGOUTPUT="${BAK_DIR} Directory exists. Not Creating this Directory!"
-	echo "${green}${LOGOUTPUT}${std}"
-    write_tmp_logfile "${LOGTYPE_WARNING}" "${LOGDESC}" "${LOGOUTPUT}"
+	printlog_tmp "$PRINTTYPE_TEXT" "$GREEN" "$LOGDESC" "$LOGTYPE_WARNING" "${BAK_DIR} Directory exists. Not Creating this Directory!"
 else
-	sleep 0.5
-    LOGOUTPUT="${BAK_DIR} Directory doesn't exist. Creating the Directory!"
-	echo "${blue}${LOGOUTPUT}${std}"
-	sudo mkdir -p "${BAK_DIR}"
-    write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+	printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "${BAK_DIR} Directory doesn't exist. Creating the Directory!"
+    printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo mkdir -p ${BAK_DIR}"
 fi
-
-sleep 0.5
 echo ""
-LOGOUTPUT="Directories are okay! Continuing the Installation!"
-echo "${blue}${LOGOUTPUT}${std}"
-write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Directories are okay! Continuing the Installation!"
 sleep 1
 
-echo ""
-echo ""
 LOGDESC="Moving Temporary Logfile"
-LOGOUTPUT="Moving temporary Logfile to ${LOGS_DIR}"
-echo "${blue}${LOGOUTPUT}...${std}"
-write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+printlog_tmp "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Moving Temporary Logfile"
+printlog_tmp "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Moving temporary Logfile to ${LOGS_DIR}"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo mv ${TMP_LOGFILE} ${LOGFILE}"
 echo ""
-sudo mv "${TMP_LOGFILE}" "${LOGFILE}"
-sleep 0.5
-LOGOUTPUT="Logfile moved successfully! Continuing Installation!"
-echo "${blue}${LOGOUTPUT}${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Logfile moved successfully! Continuing Installation!"
 sleep 1
 
-echo ""
-echo ""
 LOGDESC="Installing Git"
-echo "${blue}${LOGDESC}...${std}"
-echo ""
-LOGOUTPUT="Checking if Git is already installed"
-echo "${blue}${LOGOUTPUT}...${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-
+printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Installing Git"
+printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking if Git is already installed"
 if hash git 2>/dev/null
 then
-    sleep 0.5
-    LOGOUTPUT="Git is already installed!"
-	echo "${blue}${LOGOUTPUT}${std}"
-    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Git is already installed!"
 else
-    sleep 0.5
-    LOGOUTPUT="Git is not installed. Installing Git now!"
-	echo "${red}${LOGOUTPUT}${std}"
-    write_logfile "${LOGTYPE_WARNING}" "${LOGDESC}" "${LOGOUTPUT}"
-    echo ""
-    sleep 0.5
-	LOGOUTPUT=$(sudo apt-get install git -y)
+    printlog "$PRINTTYPE_DOTS" "$RED" "$LOGDESC" "$LOGTYPE_WARNING" "Git is not installed. Installing Git now"
+    LOGOUTPUT=$(sudo apt-get install git -y)
     echo "${LOGOUTPUT}"
-    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 fi
-
-sleep 0.5
 echo ""
-LOGOUTPUT="Git is installed and okay! Continuing Installation!"
-echo "${blue}${LOGOUTPUT}${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Git is installed and okay! Continuing Installation!"
 sleep 1
 
-echo ""
-echo ""
 LOGDESC="Installing Utilities"
-echo "${blue}${LOGDESC}...${std}"
-echo ""
+printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Installing Utilities"
 LOGOUTPUT=$(sudo apt-get install -y apt-transport-https gnupg1 dirmngr lsb-release iperf3)
 echo "${LOGOUTPUT}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 echo ""
-sleep 0.5
-LOGOUTPUT="Utilities installed successfully! Continuing Installation!"
-echo "${blue}${LOGOUTPUT}${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Utilities installed successfully! Continuing Installation!"
 sleep 1
 
-echo ""
-echo ""
 LOGDESC="Installing Ookla Repository Key"
-echo "${blue}${LOGDESC}...${std}"
+printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Installing Ookla Repository Key"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "curl -L https://packagecloud.io/ookla/speedtest-cli/gpgkey | gpg --dearmor | sudo tee /usr/share/keyrings/speedtestcli-archive-keyring.gpg 1> /dev/null 2>&1"
 echo ""
-LOGOUTPUT=$(curl -L https://packagecloud.io/ookla/speedtest-cli/gpgkey | gpg --dearmor | sudo tee /usr/share/keyrings/speedtestcli-archive-keyring.gpg 1> /dev/null 2>&1)
-LOGOUTPUT="curl -L https://packagecloud.io/ookla/speedtest-cli/gpgkey | gpg --dearmor | sudo tee /usr/share/keyrings/speedtestcli-archive-keyring.gpg 1> /dev/null 2>&1; ${LOGOUTPUT}"
-echo "${LOGOUTPUT}"
-write_logfile "${LOGTYPE_WARNING}" "${LOGDESC}" "${LOGOUTPUT}"
-echo ""
-sleep 0.5
-LOGOUTPUT="Ookla Repository Key installed successfully! Continuing Installation!"
-echo "${blue}${LOGOUTPUT}${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Ookla Repository Key installed successfully! Continuing Installation!"
 sleep 1
 
-echo ""
-echo ""
 LOGDESC="Adding Ookla Repository to APT Repository Lists"
-echo "${blue}${LOGDESC}...${std}"
+printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Adding Ookla Repository to APT Repository Lists"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "echo \"deb [signed-by=/usr/share/keyrings/speedtestcli-archive-keyring.gpg] https://packagecloud.io/ookla/speedtest-cli/debian/ $(lsb_release -cs) main\" | sudo tee ${APT_LIST} 1> /dev/null"
 echo ""
-LOGOUTPUT=$(echo "deb [signed-by=/usr/share/keyrings/speedtestcli-archive-keyring.gpg] https://packagecloud.io/ookla/speedtest-cli/debian/ $(lsb_release -cs) main" | sudo tee ${APT_LIST} 1> /dev/null)
-LOGOUTPUT="echo 'deb [signed-by=/usr/share/keyrings/speedtestcli-archive-keyring.gpg] https://packagecloud.io/ookla/speedtest-cli/debian/ $(lsb_release -cs) main' | sudo tee ${APT_LIST} 1> /dev/null; ${LOGOUTPUT}"
-echo "${LOGOUTPUT}"
-write_logfile "${LOGTYPE_WARNING}" "${LOGDESC}" "${LOGOUTPUT}"
-echo ""
-sleep 0.5
-LOGOUTPUT="Ookla Repository successfully added to APT Repository Lists! Continuing Installation!"
-echo "${blue}${LOGOUTPUT}${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Ookla Repository successfully added to APT Repository Lists! Continuing Installation!"
 sleep 1
 
-echo ""
-echo ""
 LOGDESC="Updating Repository List again"
-echo "${blue}${LOGDESC}...${std}"
+printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Updating Repository List again"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo apt-get update"
 echo ""
-LOGOUTPUT=$(sudo apt-get update)
-echo "${LOGOUTPUT}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-echo ""
-sleep 0.5
-LOGOUTPUT="Repository List updated! Continuing Installation!"
-echo "${blue}${LOGOUTPUT}${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Repository List updated! Continuing Installation!"
 sleep 1
 
-echo ""
-echo ""
 LOGDESC="Installing the Speedtest Binary"
-echo "${blue}${LOGDESC}...${std}"
+printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Installing the Speedtest Binary"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo apt-get install -y speedtest"
 echo ""
-LOGOUTPUT=$(sudo apt-get install -y speedtest)
-echo "${LOGOUTPUT}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-echo ""
-sleep 0.5
-LOGOUTPUT="Speedtest Binaries installed successfully! Continuing Installation!"
-echo "${blue}${LOGOUTPUT}${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Speedtest Binaries installed successfully! Continuing Installation!"
 sleep 1
 
-echo ""
-echo ""
 LOGDESC="Launching the initial Speedtest"
-echo "${blue}${LOGDESC}...${std}"
+printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Launching the initial Speedtest"
 LOGOUTPUT=$(sudo speedtest --accept-license --accept-gdpr 2>&1)
 echo "${LOGOUTPUT}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 echo ""
-sleep 0.5
-LOGOUTPUT="Speedtest tested successfully! Continuing Installation!"
-echo "${blue}${LOGOUTPUT}${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Speedtest tested successfully! Continuing Installation!"
 sleep 1
 
-echo ""
-echo ""
 LOGDESC="Downloading ISP-Buster Github Repository"
-echo "${blue}${LOGDESC}...${std}"
-echo ""
-LOGOUTPUT="Changing Directory to ${INSTALL_DIR}"
-echo "${blue}${LOGOUTPUT}...${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-sleep 0.5
-LOGOUTPUT=$(cd "${INSTALL_DIR}" 2>&1)
-LOGOUTPUT="cd ${INSTALL_DIR}; ${LOGOUTPUT}"
-echo "${LOGOUTPUT}"
+printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Downloading ISP-Buster Github Repository"
+printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Changing Directory to ${INSTALL_DIR}"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "cd ${INSTALL_DIR} 2>&1"
 cd "${INSTALL_DIR}" &> /dev/null
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-sleep 0.5
-LOGOUTPUT="Downloading Repository now"
-echo "${blue}${LOGOUTPUT}...${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-sleep 0.5
-LOGOUTPUT=$(sudo git clone ${GIT_ISPBUSTER} 2>&1)
-LOGOUTPUT="sudo git clone ${GIT_ISPBUSTER} 2>&1; ${LOGOUTPUT}"
-echo "${LOGOUTPUT}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Downloading Repository"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo git clone ${GIT_ISPBUSTER} 2>&1"
 echo ""
-sleep 0.5
-LOGOUTPUT="Repository successfully downloaded! Continuing Installation!"
-echo "${blue}${LOGOUTPUT}${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Repository successfully downloaded! Continuing Installation!"
 sleep 1
 
-echo ""
-echo ""
 LOGDESC="Making Scripts executable"
-echo "${blue}${LOGDESC}...${std}"
+printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Making Scripts executable"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo chmod 0755 ${PYTHON_FILE}"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo chmod 0755 ${ISP_BUSTER_FILE}"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo chmod 0755 ${INSTALLER_FILE}"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo chmod 0755 ${UNINSTALLER_FILE}"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo chmod 0755 ${AUTOINSTALLER_FILE}"
 echo ""
-LOGOUTPUT=$(sudo chmod 0755 ${PYTHON_FILE})
-LOGOUTPUT="sudo chmod 0755 ${PYTHON_FILE}; ${LOGOUTPUT}"
-echo "${LOGOUTPUT}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-sleep 0.5
-LOGOUTPUT=$(sudo chmod 0755 ${ISP_BUSTER_FILE})
-LOGOUTPUT="sudo chmod 0755 ${ISP_BUSTER_FILE}; ${LOGOUTPUT}"
-echo "${LOGOUTPUT}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-sleep 0.5
-LOGOUTPUT=$(sudo chmod 0755 ${INSTALLER_FILE})
-LOGOUTPUT="sudo chmod 0755 ${INSTALLER_FILE}; ${LOGOUTPUT}"
-echo "${LOGOUTPUT}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-sleep 0.5
-LOGOUTPUT=$(sudo chmod 0755 ${UNINSTALLER_FILE})
-LOGOUTPUT="sudo chmod 0755 ${UNINSTALLER_FILE}; ${LOGOUTPUT}"
-echo "${LOGOUTPUT}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-sleep 0.5
-LOGOUTPUT=$(sudo chmod 0755 ${AUTOINSTALLER_FILE})
-LOGOUTPUT="sudo chmod 0755 ${AUTOINSTALLER_FILE}; ${LOGOUTPUT}"
-echo "${LOGOUTPUT}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-echo ""
-sleep 0.5
-LOGOUTPUT="Successfully made Scripts executable! Continuing Installation!"
-echo "${blue}${LOGOUTPUT}${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Successfully made Scripts executable! Continuing Installation!"
 sleep 1
 
-echo ""
-echo ""
 LOGDESC="Copying Scripts to ${SCRIPTS_DIR}"
-echo "${blue}${LOGDESC}...${std}"
+printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Copying Scripts to ${SCRIPTS_DIR}"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo cp ${ISP_BUSTER_FILE} ${SCRIPTS_DIR}"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo cp ${UNINSTALLER_FILE} ${SCRIPTS_DIR}"
 echo ""
-LOGOUTPUT=$(sudo cp ${ISP_BUSTER_FILE} ${SCRIPTS_DIR})
-LOGOUTPUT="sudo cp ${ISP_BUSTER_FILE} ${SCRIPTS_DIR}; ${LOGOUTPUT}"
-echo "${LOGOUTPUT}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-sleep 0.5
-LOGOUTPUT=$(sudo cp ${UNINSTALLER_FILE} ${SCRIPTS_DIR})
-LOGOUTPUT="sudo cp ${UNINSTALLER_FILE} ${SCRIPTS_DIR}; ${LOGOUTPUT}"
-echo "${LOGOUTPUT}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-echo ""
-sleep 0.5
-LOGOUTPUT="Successfully copied Scripts to ${SCRIPTS_DIR}! Continuing Installation!"
-echo "${blue}${LOGOUTPUT}${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Successfully copied Scripts to ${SCRIPTS_DIR}! Continuing Installation!"
 sleep 1
 
-echo ""
-echo ""
 LOGDESC="Setting up IPerf3"
-echo "${blue}${LOGDESC}...${std}"
-echo ""
-LOGOUTPUT="Do you have an IPerf3 Host on your Firewall?"
-echo "${green}${LOGOUTPUT}${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Setting up IPerf3"
+printlog "$PRINTTYPE_TEXT" "$GREEN" "$LOGDESC" "$LOGTYPE_INFO" "Do you have an IPerf3 Host on your Firewall?"
 echo ""
 echo "1. Switch on IPerf3 Network testing"
 echo "2. Don't use IPerf3"
 echo ""
-read -r -p "${green}Enter a Number for an Option: ${std}" n;
+read -r -p "${GREEN}Enter a Number for an Option: ${STD}" n;
 while ! [[ $n =~ ^[1-2]$ ]]
 do
     echo ""
-    echo "${red}Wrong Input! Please enter a Number for an Option!${std}"
+    printlog "$PRINTTYPE_TEXT" "$RED" "$LOGDESC" "$LOGTYPE_WARNING" "Wrong Input! Please enter a Number for an Option!"
     read -r -p "Enter a Number for an Option: " n;
 done
-sleep 0.5
 if [[ "$n" =~ ^(1)$ ]];
 then
     echo ""
-    LOGOUTPUT="Select IPerf3 Host IPv4"
-    echo "${blue}${LOGOUTPUT}...${std}"
-    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Select IPerf3 Host IPv4"
     echo ""
-    sleep 0.5
-	read -r -p "${green}Enter the IPv4 of the IPerf Host: ${std}" ip_address;
+	read -r -p "${GREEN}Enter the IPv4 of the IPerf Host: ${STD}" ip_address;
     echo ""
-	echo "${blue}Checking if the Host is reachable...${std}"
+    printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking if the Host is reachable"
 	if ping -c 1 "$ip_address" &> /dev/null
 	then
-        LOGOUTPUT="The Host is reachable!"
-		echo "${blue}${LOGOUTPUT}${std}"
-        write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-        sleep 0.5
+        printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "The Host is reachable!"
 		i=1
 	else
 		i=0
 	fi
 	while [[ $i -eq 0 ]]
 	do
-        LOGOUTPUT="The Host is not reachable! Please try a different IP!"
-		echo "${red}${LOGOUTPUT}${std}"
-        write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-        sleep 0.5
+        printlog "$PRINTTYPE_TEXT" "$RED" "$LOGDESC" "$LOGTYPE_WARNING" "The Host is not reachable! Please try a different IP!"
 		read -r -p "Enter the IP of the NAS Server: " ip_address;
 		echo ""
-		echo "${blue}Checking if the Host is reachable...${std}"
-
+        printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking if the Host is reachable"
 		if ping -c 1 "$ip_address" &> /dev/null
 		then
-			LOGOUTPUT="The Host is reachable!"
-            echo "${blue}${LOGOUTPUT}${std}"
-            write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-            sleep 0.5
+            printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "The Host is reachable!"
 			i=1
 		else
 			i=0
 		fi
 	done
-    LOGOUTPUT="Changing IPerf to True and Host IPv4 within ${PYTHON_FILE}"
-    echo "${blue}${LOGOUTPUT}...${std}"
-    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    sleep 0.5
-    LOGOUTPUT=$(sudo sed -i "s/^iperf = False/iperf = True/" ${PYTHON_FILE} 1> /dev/null)
-    LOGOUTPUT="sudo sed -i 's/^iperf = False/iperf = True/' ${PYTHON_FILE} 1> /dev/null; ${LOGOUTPUT}"
-    echo "${LOGOUTPUT}"
-    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    sleep 0.5
-    LOGOUTPUT=$(sudo sed -i "s/^target_ip = None/target_ip = '${ip_address}'/" ${PYTHON_FILE} 1> /dev/null)
-    LOGOUTPUT="sudo sed -i 's/^target_ip = None/target_ip = '${ip_address}'/' ${PYTHON_FILE} 1> /dev/null; ${LOGOUTPUT}"
-    echo "${LOGOUTPUT}"
-    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    sleep 0.5
+    printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Changing IPerf to True and Host IPv4 within ${PYTHON_FILE}"
+    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo sed -i "s/^iperf = False/iperf = True/" ${PYTHON_FILE} 1> /dev/null"
+    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo sed -i "s/^target_ip = None/target_ip = "${ip_address}"/" ${PYTHON_FILE} 1> /dev/null"
 else
     echo ""
-    LOGOUTPUT="Not switching ON IPerf3!"
-    echo "${blue}${LOGOUTPUT}${std}"
-    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    sleep 0.5
+    printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Not switching ON IPerf3!"
 fi
 echo ""
-LOGOUTPUT="IPerf3 successfully set up! Continuing Installation!"
-echo "${blue}${LOGOUTPUT}${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "IPerf3 successfully set up! Continuing Installation!"
 sleep 1
 
-echo ""
-echo ""
 LOGDESC="Setting up Server ID"
-echo "${blue}${LOGDESC}...${std}"
-echo ""
-LOGOUTPUT="Do you want to change the Server ID to a specific one?"
-echo "${green}${LOGOUTPUT}${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Setting up Server ID"
+printlog "$PRINTTYPE_TEXT" "$GREEN" "$LOGDESC" "$LOGTYPE_INFO" "Do you want to change the Server ID to a specific one?"
 echo ""
 echo "1. Change the Server ID"
 echo "2. Choose Best at Runtime"
 echo ""
-read -r -p "${green}Enter a Number for an Option: ${std}" n;
+read -r -p "${GREEN}Enter a Number for an Option: ${STD}" n;
 while ! [[ $n =~ ^[1-2]$ ]]
 do
     echo ""
-    echo "${red}Wrong Input! Please enter a Number for an Option!${std}"
+    echo "${RED}Wrong Input! Please enter a Number for an Option!${STD}"
     read -r -p "Enter a Number for an Option: " n;
 done
-sleep 0.5
 if [[ "$n" =~ ^(1)$ ]];
 then
     echo ""
-    LOGDESC="Select Server ID"
-    echo "${blue}${LOGDESC}...${std}"
-    echo ""
-    LOGOUTPUT="Searching for Servers to display"
-    echo "${blue}${LOGOUTPUT}...${std}"
-    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    echo ""
-    sleep 0.5
+    printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Searching for Servers to display"
     RESULTS=$(speedtest -L)
     LOG_LINES+=("--------------------------------------------------------------------------------------------------------")
     FORMATTED_LINE=$(printf " %-10s %-15s %-50s %-30s" "[Number]" "[Server ID]" "[Server Name]" "[Server Location]")
@@ -670,211 +501,90 @@ then
     echo "${LOGOUTPUT}"
     write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
     echo ""
-    sleep 0.5
-    read -r -p "${green}Enter a Number for the Server ID you want to test against:${std} " n;
+    read -r -p "${GREEN}Enter a Number for the Server ID you want to test against:${STD} " n;
     while ! [[ $n =~ ^[1-9][0-9]{0,2}$ && $n -le ${#SERVER_IDS[@]} ]]
     do
         echo ""
-        echo "${red}Wrong Input! Please enter a Number for the Server ID!${std}"
+        echo "${RED}Wrong Input! Please enter a Number for the Server ID!${STD}"
         read -r -p "Enter a Number for the Server ID: " n;
     done
     SERVER_ID="${SERVER_IDS[$n]}"
     echo ""
-    LINE="You selected the following Server ID:"
-    echo "${green}${LINE}${std}"
-    echo "$SERVER_ID"
-    FORMATTED_LINE=$(printf "%s\n" "${LINE}")
-    LOGOUTPUT="${FORMATTED_LINE}${SERVER_ID}"
-    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+    printlog "$PRINTTYPE_TEXT" "$GREEN" "$LOGDESC" "$LOGTYPE_INFO" "You selected the following Server ID:"
+    printlog "$PRINTTYPE_TEXT" "$STD" "$LOGDESC" "$LOGTYPE_INFO" "${SERVER_ID}"
     echo ""
-    sleep 0.5
-    LOGOUTPUT="Changing Server ID within ${PYTHON_FILE}"
-    echo "${blue}${LOGOUTPUT}...${std}"
-    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    echo ""
-    sleep 0.5
-    LOGOUTPUT=$(sudo sed -i "s/^target_id = None/target_id = '${SERVER_ID}'/" ${PYTHON_FILE} 2>&1)
-    LOGOUTPUT="sudo sed -i 's/^target_id = None/target_id = '${SERVER_ID}'/' ${PYTHON_FILE}; ${LOGOUTPUT}"
-    echo "${LOGOUTPUT}"
-    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    echo ""
-    sleep 0.5
+    printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Changing Server ID within ${PYTHON_FILE}"
+    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo sed -i "s/^target_id = None/target_id = "${SERVER_ID}"/" ${PYTHON_FILE} 2>&1"
 else
-    LOGOUTPUT="Not changing Server ID within ${PYTHON_FILE}!"
-    echo "${blue}${LOGOUTPUT}${std}"
-    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    echo ""
-    sleep 0.5
+    printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_WARNING" "Not changing Server ID within ${PYTHON_FILE}!"
 fi
-LOGOUTPUT="Server ID successfully set up! Continuing Installation!"
-echo "${blue}${LOGOUTPUT}${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Server ID successfully set up! Continuing Installation!"
 sleep 1
 
-echo ""
-echo ""
 LOGDESC="Setting up Crontab"
-echo "${blue}${LOGDESC}...${std}"
-echo ""
-LOGOUTPUT="Checking if there already is a Crontab"
-echo "${blue}${LOGOUTPUT}...${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-sleep 0.5
-LOGOUTPUT=$(sudo crontab -u root -l 1> /dev/null)
-LOGOUTPUT="sudo crontab -u root -l 1> /dev/null; ${LOGOUTPUT}"
-echo "${LOGOUTPUT}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-echo ""
-sleep 0.5
+printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Setting up Crontab"
+printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking if there already is a Crontab"
+LOGOUTPUT=$(printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo crontab -u root -l 1> /dev/null")
 if [[ "${LOGOUTPUT}" == *no\ crontab\ for\ root* ]]
 then
-    LOGOUTPUT="There's no Crontab! Creating one now"
-    echo "${blue}${LOGOUTPUT}...${std}"
-    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    sleep 0.5
-    LOGOUTPUT=$(sudo crontab -u root "${CRON_FILE}" 1> /dev/null)
-    LOGOUTPUT="sudo crontab -u root ${CRON_FILE}; ${LOGOUTPUT}"
-    echo "${LOGOUTPUT}"
-    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    sleep 0.5
-    LOGOUTPUT="Copying a fresh Crontab File into the Backup Directory"
-    echo "${blue}${LOGOUTPUT}...${std}"
-    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    sleep 0.5
-    LOGOUTPUT=$(sudo cp "${NEW_CRON_FILE}" "${BAK_CRON_FILE}" 1> /dev/null)
-    LOGOUTPUT="sudo cp ${NEW_CRON_FILE} ${BAK_CRON_FILE}; ${LOGOUTPUT}"
-    echo "${LOGOUTPUT}"
-    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    echo ""
-    sleep 0.5
+    printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_WARNING" "There's no Crontab! Creating one now"
+    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo crontab -u root ${CRON_FILE} 1> /dev/null"
+    printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Copying a fresh Crontab File into the Backup Directory"
+    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo cp ${NEW_CRON_FILE} ${BAK_CRON_FILE} 1> /dev/null"
 else
-    LOGOUTPUT="Creating a backup of the Crontab now"
-    echo "${blue}${LOGOUTPUT}...${std}"
-    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    sleep 0.5
-    LOGOUTPUT=$(sudo crontab -u root -l | sudo tee ${BAK_CRON_FILE} 1> /dev/null)
-    LOGOUTPUT="sudo crontab -u root -l | sudo tee ${BAK_CRON_FILE} 1> /dev/null; ${LOGOUTPUT}"
-    echo "${LOGOUTPUT}"
-    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    sleep 0.5
-    LOGOUTPUT="Copying backup File"
-    echo "${blue}${LOGOUTPUT}...${std}"
-    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    sleep 0.5
-    LOGOUTPUT=$(sudo cp ${BAK_CRON_FILE} ${TMP_CRON_FILE})
-    LOGOUTPUT="sudo cp ${BAK_CRON_FILE} ${TMP_CRON_FILE}; ${LOGOUTPUT}"
-    echo "${LOGOUTPUT}"
-    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    sleep 0.5
-    LOGOUTPUT="Inserting Cronjob into File"
-    echo "${blue}${LOGOUTPUT}...${std}"
-    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    sleep 0.5
-    LOGOUTPUT=$(echo "${CRON_STRING}" | sudo tee -a ${TMP_CRON_FILE} 1> /dev/null)
-    LOGOUTPUT="echo '${CRON_STRING}' | sudo tee -a ${TMP_CRON_FILE}; ${LOGOUTPUT}"
-    echo "${LOGOUTPUT}"
-    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    sleep 0.5
-    LOGOUTPUT="Updating crontab with the File"
-    echo "${blue}${LOGOUTPUT}...${std}"
-    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    sleep 0.5
-    LOGOUTPUT=$(sudo crontab -u root "${TMP_CRON_FILE}" 1> /dev/null)
-    LOGOUTPUT="sudo crontab -u root ${TMP_CRON_FILE}; ${LOGOUTPUT}"
-    echo "${LOGOUTPUT}"
-    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    sleep 0.5
-    LOGOUTPUT="Removing Temporary File"
-    echo "${blue}${LOGOUTPUT}...${std}"
-    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    sleep 0.5
-    LOGOUTPUT=$(sudo rm "${TMP_CRON_FILE}" 1> /dev/null)
-    LOGOUTPUT="sudo rm ${TMP_CRON_FILE}; ${LOGOUTPUT}"
-    echo "${LOGOUTPUT}"
-    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    sleep 0.5
+    printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Creating a backup of the Crontab"
+    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo crontab -u root -l | sudo tee ${BAK_CRON_FILE} 1> /dev/null"
+    printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Copying backup File"
+    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo cp ${BAK_CRON_FILE} ${TMP_CRON_FILE}"
+    printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Inserting Cronjob into File"
+    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "echo ${CRON_STRING} | sudo tee -a ${TMP_CRON_FILE} 1> /dev/null"
+    printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Updating crontab with the File"
+    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo crontab -u root ${TMP_CRON_FILE} 1> /dev/null"
+    printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Removing Temporary File"
+    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo rm ${TMP_CRON_FILE} 1> /dev/null"
 fi
 echo ""
-LOGOUTPUT="Successfully created Cronjob! Continuing Installation!"
-echo "${blue}${LOGOUTPUT}${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Successfully created Cronjob! Continuing Installation!"
 sleep 1
 
-echo ""
-echo ""
 LOGDESC="Cleaning up the Installation"
-echo "${blue}${LOGDESC}...${std}"
-echo ""
-LOGOUTPUT="Checking if I exist in the Directory I'm run"
-echo "${blue}${LOGOUTPUT}...${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Cleaning up the Installation"
+printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking if I exist in the Directory I'm run"
 if [ -f "${MY_PATH}" ]
 then
-    LOGOUTPUT="It seems I still exist. Purging myself now for Cleanup"
-    echo "${blue}${LOGOUTPUT}...${std}"
-    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    sleep 0.5
-	i_exist=true
+    printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "It seems I still exist. Purging myself now for Cleanup"
+	printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo rm ${MY_PATH}"
 else
-    LOGOUTPUT="It seems I don't exist in the Directory I'm run. Not able to clean myself up!"
-    echo "${red}${LOGOUTPUT}${std}"
-    write_logfile "${LOGTYPE_WARNING}" "${LOGDESC}" "${LOGOUTPUT}"
-    sleep 0.5
-	i_exist=false
+    printlog "$PRINTTYPE_TEXT" "$RED" "$LOGDESC" "$LOGTYPE_WARNING" "It seems I don't exist in the Directory I'm run. Not able to clean myself up!"
 fi
 
 echo ""
-LOGOUTPUT="Cleanup complete! Continuing the Installation!"
-echo "${blue}${LOGOUTPUT}${std}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Cleanup complete! Continuing the Installation!"
 sleep 1
 
-echo ""
-echo ""
-LOGDESC="Rebooting after Installation"
-echo "${blue}${LOGDESC}...${std}"
-echo ""
-echo "${green}It is highly recommended to reboot after Installation!${std}"
-echo "${green}Do you want to reboot now?${std}"
+LOGDESC="Reboot after Installation"
+printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Reboot after Installation"
+echo "${GREEN}It is highly recommended to reboot after Installation!${STD}"
+echo "${GREEN}Do you want to reboot now?${STD}"
 read -r -p "Yes (y)/ No (n): " n;
 
 while ! [[ "$n" =~ ^(y|n)$ ]];
 do
 	echo ""
-	echo "${red}Wrong Input! Please type 'y' for 'YES' or 'n' for 'NO'!${std}"
+	echo "${RED}Wrong Input! Please type 'y' for 'YES' or 'n' for 'NO'!${STD}"
 	read -r -p "Yes (y)/ No (n): " n;
 done
 
 if [[ "$n" =~ ^(y)$ ]];
 then
 	echo ""
-    LOGOUTPUT="Installation complete! Rebooting now"
-    echo "${blue}${LOGOUTPUT}...${std}"
-    write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-    echo ""
-    sleep 0.5
-	if $i_exist
-	then
-		LOGOUTPUT=$(sudo rm "${MY_PATH}")
-        LOGOUTPUT="sudo rm ${MY_PATH}; ${LOGOUTPUT}"
-        write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-        sleep 0.5
-	fi
-	sudo reboot now
+    printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Installation complete! Rebooting now"
+    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo reboot now"
 	sleep 1
 else
 	echo ""
-    LOGOUTPUT="Installation complete! Not Rebooting!"
-    echo "${red}${LOGOUTPUT}${std}"
-    echo "${red}Please reboot your System whenever it is convenient!${std}"
-    write_logfile "${LOGTYPE_WARNING}" "${LOGDESC}" "${LOGOUTPUT}"
-    sleep 0.5
-	if $i_exist
-	then
-        LOGOUTPUT=$(sudo rm "${MY_PATH}")
-        LOGOUTPUT="sudo rm ${MY_PATH}; ${LOGOUTPUT}"
-        write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
-        sleep 0.5
-	fi
+    printlog "$PRINTTYPE_TEXT" "$RED" "$LOGDESC" "$LOGTYPE_WARNING" "Installation complete! Not Rebooting!"
+    echo "${RED}Please reboot your System whenever it is convenient!${STD}"
 	sleep 1
 fi
