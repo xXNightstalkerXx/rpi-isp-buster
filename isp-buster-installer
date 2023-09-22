@@ -109,6 +109,11 @@ printlog () {
         functionoutput=$(${input})
         logoutput="${input}; ${LOGOUTPUT}"
         echo "${logoutput}"
+        error="${logoutput#*;}"
+        if [[ -n "$error" ]]
+        then
+            logtype="$LOGTYPE_ERROR"
+        fi
         write_logfile "${logtype}" "${logdescription}" "${logoutput}"
         return "${functionoutput}"
     fi
@@ -143,6 +148,11 @@ printlog_tmp () {
         functionoutput=$(${input})
         logoutput="${input}; ${LOGOUTPUT}"
         echo "${logoutput}"
+        error="${logoutput#*;}"
+        if [[ -n "$error" ]]
+        then
+            logtype="$LOGTYPE_ERROR"
+        fi
         write_tmp_logfile "${logtype}" "${logdescription}" "${logoutput}"
         return "${functionoutput}"
     fi
