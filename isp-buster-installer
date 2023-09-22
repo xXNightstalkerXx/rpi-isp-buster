@@ -107,7 +107,7 @@ printlog () {
     elif [[ $printtype == "FUNCTION" ]]
     then
         functionoutput=$(${input})
-        logoutput="${input}; ${LOGOUTPUT}"
+        logoutput="${input}; ${functionoutput}"
         echo "${logoutput}"
         error="${logoutput#*;}"
         if [[ -n "$error" ]]
@@ -146,7 +146,7 @@ printlog_tmp () {
     elif [[ $printtype == "FUNCTION" ]]
     then
         functionoutput=$(${input})
-        logoutput="${input}; ${LOGOUTPUT}"
+        logoutput="${input}; ${functionoutput}"
         echo "${logoutput}"
         error="${logoutput#*;}"
         if [[ -n "$error" ]]
@@ -179,7 +179,6 @@ os_type=${os_type#*=}
 if [[ "$os_type" == *"Kali"* ]]
 then
 	INSTALL_OPTIONS=1
-	echo ""
 	echo "$os_type"
     LOGOUTPUT="${os_type}"
     write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
@@ -188,7 +187,6 @@ then
 	if [[ $(cat /boot/issue.txt) == *"stage2"* ]]
 	then
 		INSTALL_OPTIONS=2
-		echo ""
 		echo "$os_type"
         echo " Lite Version"
         LOGOUTPUT="${os_type} - Lite Version"
@@ -196,7 +194,6 @@ then
 	elif [[ $(cat /boot/issue.txt) == *"stage4"* ]]
 	then
 		INSTALL_OPTIONS=3
-		echo ""
 		echo "$os_type"
 		echo " GUI Lite Version"
         LOGOUTPUT="${os_type} - GUI Lite Version"
@@ -204,14 +201,12 @@ then
 	elif [[ $(cat /boot/issue.txt) == *"stage5"* ]]
 	then
 		INSTALL_OPTIONS=3
-		echo ""
 		echo "$os_type"
 		echo " GUI Full Version"
         LOGOUTPUT="${os_type} - GUI Full Version"
         write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 	else
 		INSTALL_OPTIONS=2
-		echo ""
 		echo "$os_type"
 		echo " Unknown Raspbian"
 		echo " Using Lite Version Install Options!"
@@ -219,7 +214,6 @@ then
         write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 	fi
 else
-	echo ""
     printlog_tmp "$PRINTTYPE_TEXT" "$RED" "$LOGDESC" "$LOGTYPE_ERROR" "Wrong Operating System detected! Aborting the Installation!"
 	sleep 1
 	exit 1
