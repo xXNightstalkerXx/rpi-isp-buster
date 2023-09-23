@@ -360,14 +360,18 @@ sleep 1
 
 LOGDESC="Updating Repository List again"
 printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Updating Repository List again"
-printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo apt-get update"
+LOGOUTPUT=$(sudo apt-get update)
+echo "${LOGOUTPUT}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 echo ""
 printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Repository List updated! Continuing Installation!"
 sleep 1
 
 LOGDESC="Installing the Speedtest Binary"
 printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Installing the Speedtest Binary"
-printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo apt-get install -y speedtest"
+LOGOUTPUT=$(sudo apt-get install -y speedtest)
+echo "${LOGOUTPUT}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 echo ""
 printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Speedtest Binaries installed successfully! Continuing Installation!"
 sleep 1
@@ -384,10 +388,10 @@ sleep 1
 LOGDESC="Downloading ISP-Buster Github Repository"
 printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Downloading ISP-Buster Github Repository"
 printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Changing Directory to ${INSTALL_DIR}"
-printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "cd ${INSTALL_DIR} 2>&1"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "cd ${INSTALL_DIR}"
 cd "${INSTALL_DIR}" &> /dev/null
 printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Downloading Repository"
-printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo git clone ${GIT_ISPBUSTER} 2>&1"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo git clone ${GIT_ISPBUSTER} 1> /dev/null"
 echo ""
 printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Repository successfully downloaded! Continuing Installation!"
 sleep 1
