@@ -168,7 +168,7 @@ LOGDESC="Removing the Speedtest Binary"
 printlog_tmp "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Removing the Speedtest Binary"
 LOGOUTPUT=$(sudo apt-get purge -y speedtest)
 echo "${LOGOUTPUT}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 echo ""
 printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Speedtest Binaries removed successfully! Continuing to Uninstall!"
 sleep 1
@@ -177,7 +177,7 @@ LOGDESC="Uninstalling Utilities"
 printlog_tmp "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Uninstalling Utilities"
 LOGOUTPUT=$(sudo apt-get purge -y iperf3)
 echo "${LOGOUTPUT}"
-write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 echo ""
 printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Utilities uninstalled successfully! Continuing to Uninstall!"
 sleep 1
