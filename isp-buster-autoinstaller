@@ -39,7 +39,7 @@ LOGTYPE_ERROR="ERROR"
 CRON_STRING="*/30 * * * * /usr/bin/isp-buster"
 
 # Crontab exists Variable
-CRON_EXISTS=false
+CRON_EXISTS="false"
 
 # Git URL Declarations
 GIT_ISPBUSTER="https://github.com/xXNightstalkerXx/isp-buster.git"
@@ -119,9 +119,9 @@ printlog () {
         write_logfile "${logtype}" "${logdescription}" "${logoutput}"
         if [[ "${functionoutput}" == *no\ crontab\ for\ root* ]]
         then
-            CRON_EXISTS=false
+            CRON_EXISTS="false"
         else
-            CRON_EXISTS=true
+            CRON_EXISTS="true"
         fi
     fi
 }
@@ -162,9 +162,9 @@ printlog_tmp () {
         write_tmp_logfile "${logtype}" "${logdescription}" "${logoutput}"
         if [[ "${functionoutput}" == *no\ crontab\ for\ root* ]]
         then
-            CRON_EXISTS=false
+            CRON_EXISTS="false"
         else
-            CRON_EXISTS=true
+            CRON_EXISTS="true"
         fi
     fi
 }
@@ -491,7 +491,7 @@ LOGDESC="Setting up Crontab"
 printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Setting up Crontab"
 printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking if there already is a Crontab"
 printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo crontab -u root -l 1> /dev/null"
-if ! [[ $CRON_EXISTS ]]
+if [[ $CRON_EXISTS == "false" ]]
 then
     printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_WARNING" "There's no Crontab! Creating one now"
     printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo crontab -u root ${CRON_FILE} 1> /dev/null"
@@ -503,7 +503,7 @@ else
     printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Copying backup File"
     printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo cp ${BAK_CRON_FILE} ${TMP_CRON_FILE}"
     printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Inserting Cronjob into File"
-    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "echo ${CRON_STRING} | sudo tee -a ${TMP_CRON_FILE} 1> /dev/null"
+    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "echo '${CRON_STRING}' | sudo tee -a ${TMP_CRON_FILE} 1> /dev/null"
     printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Updating crontab with the File"
     printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo crontab -u root ${TMP_CRON_FILE} 1> /dev/null"
     printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Removing Temporary File"
