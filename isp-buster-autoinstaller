@@ -10,7 +10,7 @@ CLONE_DIR="${INSTALL_DIR}/isp-buster"
 SCRIPTS_DIR=/usr/bin/
 
 # Filename Declarations
-MY_PATH="${START_DIR}/isp-buster-installer"
+MY_PATH="${START_DIR}/isp-buster-autoinstaller"
 PYTHON_FILE="${CLONE_DIR}/speedtest.py"
 ISP_BUSTER_FILE="${CLONE_DIR}/isp-buster"
 INSTALLER_FILE="${CLONE_DIR}/isp-buster-installer"
@@ -525,5 +525,5 @@ else
 fi
 
 echo ""
-printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Cleanup complete! Continuing the Installation!"
+printlog "$PRINTTYPE_TEXT" "$RED" "$LOGDESC" "$LOGTYPE_INFO" "Cleanup complete! Please Reboot after the Installation!"
 sleep 1
