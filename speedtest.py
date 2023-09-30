@@ -170,19 +170,19 @@ if local_ip == "N/A" or target_ip == "N/A" or interval == "N/A" or transfer == "
     if returncode[0] == 1:
         write_csvfile(filetype_tmplog, logtype, logdescription, logoutput, "", "", "", "", "", "", "")
 
-    # Write the IPerf data to the file
-    # CSV File Header: Local (IPv4),Target (IPv4),Interval (sec),Transfer (MBytes),Bitrate (Mbits/sec),Retries
-    # CSV File Vars: local_ip, target_ip, interval, transfer, bitrate, retries
-    returncode = write_csvfile(filetype_iperf, target_ip, interval, transfer, bitrate, retries, "", "", "", "", "")
+# Write the IPerf data to the file
+# CSV File Header: Local (IPv4),Target (IPv4),Interval (sec),Transfer (MBytes),Bitrate (Mbits/sec),Retries
+# CSV File Vars: local_ip, target_ip, interval, transfer, bitrate, retries
+returncode = write_csvfile(filetype_iperf, target_ip, interval, transfer, bitrate, retries, "", "", "", "", "")
 
-    logtype = returncode[1]
-    logdescription = returncode[2]
-    logoutput = returncode [3]
+logtype = returncode[1]
+logdescription = returncode[2]
+logoutput = returncode [3]
 
-    returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput, "", "", "", "", "", "", "")
+returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput, "", "", "", "", "", "", "")
 
-    if returncode[0] == 1:
-        write_csvfile(filetype_tmplog, logtype, logdescription, logoutput, "", "", "", "", "", "", "")
+if returncode[0] == 1:
+    write_csvfile(filetype_tmplog, logtype, logdescription, logoutput, "", "", "", "", "", "", "")
 
 
 # Use the right Speedtest switches depending on the given Server ID to connect to. By default it selects the best Server at each Test.
