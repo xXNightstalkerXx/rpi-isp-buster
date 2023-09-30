@@ -271,7 +271,6 @@ logoutput = ""
 logdescription = "The Speedtest finished successfully"
 
 print(f"{logdescription}:")
-print(logoutput)
 
 returncode = write_csvfile(filetype_log, logtype, logdescription, logoutput, "", "", "", "", "", "", "")
 
