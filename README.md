@@ -2,13 +2,15 @@
 The ISP-Buster helps you to do Speedtests to an external Server and within your Network and logs them to .csv Files.
 
 This is achieved with a custom Python Program which tests the internal speeds of your Network with Iperf3 and the
-external ISP Speeds with speedtest-cli by ookla.
+external ISP Speeds with speedtest-cli by Ookla.
 
 It is written with Raspberry Pi's in mind and tested on Raspbian OS.</br>
 Please consider this if you have troubles using it on a different OS.
 
 Speedtests will be done automatically every 30 minutes initiated by a cronjob as sudo user.</br>
-This get's set up by the installer bash script.
+This get's set up by the installer bash script.</br>
+Also if you've already got a Crontab with the root user it will get backed up</br>
+at /etc/isp-buster/backup/crontab.bak before getting changed by the Script!
 
 It is possible to disable the IPerf3 Speedtest if you're not able to set up an IPerf Host on your Firewall.</br>
 You can also define a specific Server for speedtest-cli to keep the results consistent.</br>
