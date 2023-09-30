@@ -66,9 +66,9 @@ You will also find the Server ID there used by the Settings within the speedtest
     sudo nano /etc/isp-buster/speedtest.py
 To open the Python Script and change the desired Settings for the Script.</br>
 Within the Program Header you will find the following Settings:
-  - "iperf = true" change this to "false" if you can't set up an IPerf3 Host on your Firewall
-  - "target_ip =" change this to the IPv4 address of your IPerf3 Host
-  - "target_id =" change this to the ID of the Ookla Server you want to be used by speedtest-cli
+  - "iperf = False" change this to "True" if you want to set up an IPerf3 Host on your Firewall
+  - "target_ip = None" change this to the IPv4 address of your IPerf3 Host
+  - "target_id = None" change this to the ID of the Ookla Server you want to be used by speedtest-cli
 
 </br>
 </br>
