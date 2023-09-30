@@ -1,1 +1,292 @@
 #!/bin/bash
+
+# General Directory Declarations
+START_DIR=$PWD
+INSTALL_DIR=/etc/isp-buster
+BAK_DIR="${INSTALL_DIR}/backup"
+HOME_DIR="/home/${USER}"
+SCRIPTS_DIR=/usr/bin
+
+# Filename Declarations
+MY_PATH="${START_DIR}/isp-buster-uninstaller"
+ISP_BUSTER_FILE="${SCRIPTS_DIR}/isp-buster"
+UNINSTALLER_FILE="${SCRIPTS_DIR}/isp-buster-uninstaller"
+TMP_CRON_FILE="${BAK_DIR}/crontab_tmp"
+BAK_CRON_FILE="${BAK_DIR}/crontab.bak"
+TMP_LOGFILE="${HOME_DIR}/isp-buster_uninstall_log.txt"
+APT_LIST="/etc/apt/sources.list.d/speedtest.list"
+
+# Logtype Declarations
+PRINTTYPE_DESC="DESC"
+PRINTTYPE_DOTS="DOTS"
+PRINTTYPE_TEXT="TEXT"
+PRINTTYPE_FUNCTION="FUNCTION"
+
+# Logtype Declarations
+LOGTYPE_INFO="INFO"
+LOGTYPE_WARNING="WARNING"
+LOGTYPE_ERROR="ERROR"
+
+# Cronstring Declaration
+CRON_STRING="*/30 * * * * /usr/bin/isp-buster"
+
+# Crontab exists Variable
+CRON_EXISTS="false"
+
+# Color Declarations
+STD=$(tput setaf 15)
+RED=$(tput setaf 9 bold)
+GREEN=$(tput setaf 10 bold)
+# yellow=$(tput setaf 11 bold)
+# pink=$(tput setaf 57)
+BLUE=$(tput setaf 27 bold)
+
+# Function Decalarations
+write_tmp_logfile () {
+    logtype="$1"
+    logdescription="$2"
+    logoutput="$3"
+    date=$(date +"%d/%m/%y")
+    timestamp=$(date +"%H:%M:%S")
+
+    if ! [ -f "${TMP_LOGFILE}" ]
+    then
+        printf "[%s]  [%s]  [%s]  [%s]\n%s\n\n" "${date}" "${timestamp}" "${logtype}" "${logdescription}" "${logoutput}" > "${TMP_LOGFILE}"
+    else
+        printf "[%s]  [%s]  [%s]  [%s]\n%s\n\n" "${date}" "${timestamp}" "${logtype}" "${logdescription}" "${logoutput}" >> "${TMP_LOGFILE}"
+    fi
+}
+
+printlog_tmp () {
+    printtype=$1
+    color=$2
+    logdescription=$3
+    logtype=$4
+    input=$5
+
+    sleep 0.5
+    if [[ $printtype == "DESC" ]]
+    then
+        echo ""
+        echo ""
+        echo "${color}${logdescription}...${STD}"
+        echo ""
+    elif [[ $printtype == "DOTS" ]]
+    then
+        logoutput="${input}"
+        echo "${color}${input}...${STD}"
+        write_tmp_logfile "${logtype}" "${logdescription}" "${logoutput}"
+    elif [[ $printtype == "TEXT" ]]
+    then
+        logoutput="${input}"
+        echo "${color}${logoutput}${STD}"
+        write_tmp_logfile "${logtype}" "${logdescription}" "${logoutput}"
+    elif [[ $printtype == "FUNCTION" ]]
+    then
+        functionoutput=$(eval "$input" 2>&1)
+        logoutput="$input; ${functionoutput}"
+        echo "${logoutput}"
+        if [[ "${logoutput#*;}" != " " ]]
+        then
+            logtype="$LOGTYPE_ERROR"
+        fi
+        write_tmp_logfile "${logtype}" "${logdescription}" "${logoutput}"
+        if [[ "${functionoutput}" == *no\ crontab\ for\ root* ]]
+        then
+            CRON_EXISTS="false"
+        else
+            CRON_EXISTS="true"
+        fi
+    fi
+}
+
+# Main Script
+echo ""
+echo ""
+echo "${BLUE} ___  ________  ________        ________  ___  ___  ________  _________  _______   ________${STD}"
+echo "${BLUE}|\  \|\   ____\|\   __  \      |\   __  \|\  \|\  \|\   ____\|\___   ___|\  ___ \ |\   __  \\${STD}"
+echo "${BLUE}\ \  \ \  \___|\ \  \|\  \     \ \  \|\ /\ \  \\\\\  \ \  \___|\|___ \  \_\ \   __/|\ \  \|\  \\${STD}"
+echo "${BLUE} \ \  \ \_____  \ \   ____\     \ \   __  \ \  \\\\\  \ \_____  \   \ \  \ \ \  \_|/_\ \   _  _\\${STD}"
+echo "${BLUE}  \ \  \|____|\  \ \  \___|      \ \  \|\  \ \  \\\\\  \|____|\  \   \ \  \ \ \  \_|\ \ \  \\\  \|${STD}"
+echo "${BLUE}   \ \__\____\_\  \ \__\          \ \_______\ \_______\____\_\  \   \ \__\ \ \_______\ \__\\\ _\\${STD}"
+echo "${BLUE}    \|__|\_________\|__|           \|_______|\|_______|\_________\   \|__|  \|_______|\|__|\|__|${STD}"
+echo "${BLUE}        \|_________|                                  \|_________|${STD}"
+echo "ISP Buster Speedtest Uninstaller Tool by Nightstalker"
+
+LOGDESC="Checking OS"
+printlog_tmp "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking OS"
+os_type="$(grep -E '^(NAME)=' /etc/os-release)"
+os_type=${os_type#*=}
+
+if [[ "$os_type" == *"Kali"* ]]
+then
+	INSTALL_OPTIONS=1
+	echo "$os_type"
+    LOGOUTPUT="${os_type}"
+    write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+elif [[ "$os_type" == *"Raspbian"* ]]
+then
+	if [[ $(cat /boot/issue.txt) == *"stage2"* ]]
+	then
+		INSTALL_OPTIONS=2
+		echo "$os_type"
+        echo " Lite Version"
+        LOGOUTPUT="${os_type} - Lite Version"
+        write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+	elif [[ $(cat /boot/issue.txt) == *"stage4"* ]]
+	then
+		INSTALL_OPTIONS=3
+		echo "$os_type"
+		echo " GUI Lite Version"
+        LOGOUTPUT="${os_type} - GUI Lite Version"
+        write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+	elif [[ $(cat /boot/issue.txt) == *"stage5"* ]]
+	then
+		INSTALL_OPTIONS=3
+		echo "$os_type"
+		echo " GUI Full Version"
+        LOGOUTPUT="${os_type} - GUI Full Version"
+        write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+	else
+		INSTALL_OPTIONS=2
+		echo "$os_type"
+		echo " Unknown Raspbian"
+		echo " Using Lite Version Install Options!"
+        LOGOUTPUT="${os_type} - Unknown Raspbian"
+        write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+	fi
+else
+    printlog_tmp "$PRINTTYPE_TEXT" "$RED" "$LOGDESC" "$LOGTYPE_ERROR" "Wrong Operating System detected! Aborting the Uninstall!"
+	sleep 1
+	exit 1
+fi
+echo ""
+printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Operating System okay! Continuing to Uninstall!"
+sleep 1
+
+LOGDESC="Removing the Speedtest Binary"
+printlog_tmp "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Removing the Speedtest Binary"
+LOGOUTPUT=$(sudo apt-get purge -y speedtest)
+echo "${LOGOUTPUT}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Speedtest Binaries removed successfully! Continuing to Uninstall!"
+sleep 1
+
+LOGDESC="Uninstalling Utilities"
+printlog_tmp "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Uninstalling Utilities"
+LOGOUTPUT=$(sudo apt-get purge -y apt-transport-https gnupg1 dirmngr lsb-release iperf3)
+echo "${LOGOUTPUT}"
+write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Utilities uninstalled successfully! Continuing to Uninstall!"
+sleep 1
+
+LOGDESC="Removing Ookla Repository from APT Repository Lists"
+printlog_tmp "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Removing Ookla Repository from APT Repository Lists"
+printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" " sudo rm ${APT_LIST} 1> /dev/null"
+echo ""
+printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Ookla Repository successfully deleted from APT Repository Lists! Continuing to Uninstall!"
+sleep 1
+
+LOGDESC="Uninstalling Ookla Repository Key"
+printlog_tmp "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Uninstalling Ookla Repository Key"
+printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo rm /usr/share/keyrings/speedtestcli-archive-keyring.gpg 1> /dev/null"
+echo ""
+printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Ookla Repository Key removed successfully! Continuing to Uninstall!"
+sleep 1
+
+LOGDESC="Deleting Scripts from ${SCRIPTS_DIR}"
+printlog_tmp "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Deleting Scripts from ${SCRIPTS_DIR}"
+printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo rm ${ISP_BUSTER_FILE}"
+printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo rm ${UNINSTALLER_FILE}"
+echo ""
+printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Successfully deleted Scripts from ${SCRIPTS_DIR}! Continuing to Uninstall!"
+sleep 1
+
+LOGDESC="Removing Crontab Line"
+printlog_tmp "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Removing Crontab Line"
+printlog_tmp "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking if there still is a Crontab"
+printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo crontab -u root -l 1> /dev/null"
+if [[ $CRON_EXISTS == "false" ]]
+then
+    printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_WARNING" "There's no Crontab! Nothing to remove!"
+    printlog_tmp "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Copying the Backup of the old Crontab to ${HOME_DIR}"
+    printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo cp ${BAK_CRON_FILE} ${HOME_DIR}"
+else
+    printlog_tmp "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Creating a backup of the Crontab"
+    printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo crontab -u root -l | sudo tee ${BAK_CRON_FILE} 1> /dev/null"
+    printlog_tmp "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Removing Cronjob from the Crontab into a temporary File"
+    printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "grep -v '${CRON_STRING}' ${BAK_CRON_FILE} | sudo tee ${TMP_CRON_FILE} 1> /dev/null"
+    printlog_tmp "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Updating Crontab with the File"
+    printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo crontab -u root ${TMP_CRON_FILE} 1> /dev/null"
+    printlog_tmp "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Removing Temporary File"
+    printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo rm ${TMP_CRON_FILE} 1> /dev/null"
+    printlog_tmp "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Copying the Backup of the Crontab to ${HOME_DIR}"
+    printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo cp ${BAK_CRON_FILE} ${HOME_DIR}"
+fi
+echo ""
+printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Successfully removed Crontab Line! Continuing to Uninstall!"
+sleep 1
+
+LOGDESC="Removing ${INSTALL_DIR}"
+printlog_tmp "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Removing ${INSTALL_DIR}"
+if [ -d "${INSTALL_DIR}" ]
+then
+    printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "${INSTALL_DIR} Directory exists. Deleting this Directory!"
+    printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo rm -d -r ${INSTALL_DIR}"
+else
+    printlog_tmp "$PRINTTYPE_TEXT" "$GREEN" "$LOGDESC" "$LOGTYPE_WARNING" "${INSTALL_DIR} Directory doesn't exist. Not able to delete it!"
+fi
+echo ""
+printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Successfully deleted ${INSTALL_DIR}! Continuing to Uninstall!"
+sleep 1
+
+LOGDESC="Updating Repository List"
+printlog_tmp "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Updating Repository List"
+LOGOUTPUT=$(sudo apt-get update)
+echo "${LOGOUTPUT}"
+write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+echo ""
+printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Repository List updated! Continuing to Uninstall!"
+sleep 1
+
+LOGDESC="Cleaning up the Dust"
+printlog_tmp "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Cleaning up the Dust"
+printlog_tmp "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking if I still exist in the Directory I'm run"
+if [ -f "${MY_PATH}" ]
+then
+    printlog_tmp "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "It seems I still exist. Purging myself now for Cleanup"
+    printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo rm ${MY_PATH}"
+else
+    printlog_tmp "$PRINTTYPE_TEXT" "$GREEN" "$LOGDESC" "$LOGTYPE_INFO" "It seems I don't exist in the Directory I'm run. Not able to clean myself up!"
+fi
+echo ""
+printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Cleanup complete! Continuing to Uninstall!"
+sleep 1
+
+LOGDESC="Reboot after Uninstall"
+printlog_tmp "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Reboot after Uninstall"
+echo "${GREEN}It is highly recommended to reboot after Uninstall!${STD}"
+echo "${GREEN}Do you want to reboot now?${STD}"
+read -r -p "Yes (y)/ No (n): " n;
+
+while ! [[ "$n" =~ ^(y|n)$ ]];
+do
+	echo ""
+	echo "${RED}Wrong Input! Please type 'y' for 'YES' or 'n' for 'NO'!${STD}"
+	read -r -p "Yes (y)/ No (n): " n;
+done
+
+if [[ "$n" =~ ^(y)$ ]];
+then
+	echo ""
+    printlog_tmp "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Uninstall complete! Rebooting now"
+    printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo reboot now"
+	sleep 1
+else
+	echo ""
+    printlog_tmp "$PRINTTYPE_TEXT" "$RED" "$LOGDESC" "$LOGTYPE_WARNING" "Uninstall complete! Not Rebooting!"
+    echo "${RED}Please reboot your System whenever it is convenient!${STD}"
+	sleep 1
+fi
