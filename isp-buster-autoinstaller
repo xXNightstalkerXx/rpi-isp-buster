@@ -479,7 +479,7 @@ then
     printlog "$PRINTTYPE_TEXT" "$STD" "$LOGDESC" "$LOGTYPE_INFO" "${SERVER_ID}"
     echo ""
     printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Changing Server ID within ${PYTHON_FILE}"
-    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo sed -i \"s/^target_id = None/target_id = ${SERVER_ID}/\" ${PYTHON_FILE} 1> /dev/null"
+    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo sed -i \"s/^target_id = None/target_id = '${SERVER_ID}'/\" ${PYTHON_FILE} 1> /dev/null"
 else
     printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_WARNING" "Not changing Server ID within ${PYTHON_FILE}!"
 fi
