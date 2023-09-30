@@ -114,7 +114,7 @@ printlog () {
         then
             logtype="$LOGTYPE_ERROR"
         fi
-        write_tmp_logfile "${logtype}" "${logdescription}" "${logoutput}"
+        write_logfile "${logtype}" "${logdescription}" "${logoutput}"
         if [[ "${functionoutput}" == *no\ crontab\ for\ root* ]]
         then
             return 1
@@ -459,8 +459,8 @@ then
 		fi
 	done
     printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Changing IPerf to True and Host IPv4 within ${PYTHON_FILE}"
-    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo sed -i "s/^iperf = False/iperf = True/" ${PYTHON_FILE} 1> /dev/null"
-    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo sed -i "s/^target_ip = None/target_ip = "${ip_address}"/" ${PYTHON_FILE} 1> /dev/null"
+    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo sed -i "s/^iperf = False/iperf = True/" ${PYTHON_FILE} 1> /dev/null" ##############################
+    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo sed -i "s/^target_ip = None/target_ip = "${ip_address}"/" ${PYTHON_FILE} 1> /dev/null" ##########################
 else
     echo ""
     printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Not switching ON IPerf3!"
