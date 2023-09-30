@@ -184,7 +184,7 @@ sleep 1
 
 LOGDESC="Removing Ookla Repository from APT Repository Lists"
 printlog_tmp "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Removing Ookla Repository from APT Repository Lists"
-printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" " sudo rm ${APT_LIST} 1> /dev/null"
+printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo rm ${APT_LIST} 1> /dev/null"
 echo ""
 printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Ookla Repository successfully deleted from APT Repository Lists! Continuing to Uninstall!"
 sleep 1
