@@ -40,7 +40,7 @@ def write_csvfile(filetype, field_1, field_2, field_3, field_4, field_5, field_6
     elif filetype == "SPEEDTEST":
         filename = os.path.join(results_dir, 'isp-buster_speedtest.csv')
         fileheader = 'Date,Time,Server ID,Ping (ms),Jitter (ms),Download (Mbits/sec),Upload (Mbits/sec)\r\n'
-        fileformat = '{},{},{},{},{},{}\r\n'.format(date, timestamp, field_1, field_2, field_3, field_4, field_5)
+        fileformat = '{},{},{},{},{},{},{}\r\n'.format(date, timestamp, field_1, field_2, field_3, field_4, field_5)
     elif filetype == "COMBINED":
         filename = os.path.join(results_dir, 'isp-buster_combined.csv')
         fileheader = 'Date,Time,IPerf Local (IPv4),IPerf Target (IPv4),IPerf Transfer (MBytes),IPerf Bitrate (Mbits/sec),IPerf Retries,Speedtest Server ID,Speedtest Ping (ms),Speedtest Jitter (ms),Speedtest Download (Mbits/sec),Speedtest Upload (Mbits/sec)\r\n'
@@ -173,7 +173,7 @@ if local_ip == "N/A" or target_ip == "N/A" or interval == "N/A" or transfer == "
 # Write the IPerf data to the file
 # CSV File Header: Local (IPv4),Target (IPv4),Interval (sec),Transfer (MBytes),Bitrate (Mbits/sec),Retries
 # CSV File Vars: local_ip, target_ip, interval, transfer, bitrate, retries
-returncode = write_csvfile(filetype_iperf, target_ip, interval, transfer, bitrate, retries, "", "", "", "", "")
+returncode = write_csvfile(filetype_iperf, local_ip, target_ip, interval, transfer, bitrate, retries, "", "", "", "")
 
 logtype = returncode[1]
 logdescription = returncode[2]
