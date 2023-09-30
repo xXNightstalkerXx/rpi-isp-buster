@@ -28,7 +28,7 @@ LOGTYPE_WARNING="WARNING"
 LOGTYPE_ERROR="ERROR"
 
 # Cronstring Declaration
-CRON_STRING="*/30 * * * * /usr/bin/isp-buster"
+CRON_STRING="\*/30 \* \* \* \* /usr/bin/isp-buster"
 
 # Crontab exists Variable
 CRON_EXISTS="false"
