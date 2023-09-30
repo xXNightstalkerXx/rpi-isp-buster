@@ -175,7 +175,7 @@ sleep 1
 
 LOGDESC="Uninstalling Utilities"
 printlog_tmp "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Uninstalling Utilities"
-LOGOUTPUT=$(sudo apt-get purge -y apt-transport-https gnupg1 dirmngr lsb-release iperf3)
+LOGOUTPUT=$(sudo apt-get purge -y iperf3)
 echo "${LOGOUTPUT}"
 write_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 echo ""
