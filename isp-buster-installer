@@ -38,6 +38,9 @@ LOGTYPE_ERROR="ERROR"
 # Cronstring Declaration
 CRON_STRING="*/30 * * * * /usr/bin/isp-buster"
 
+# Crontab exists Variable
+CRON_EXISTS=false
+
 # Git URL Declarations
 GIT_ISPBUSTER="https://github.com/xXNightstalkerXx/isp-buster.git"
 
@@ -109,16 +112,16 @@ printlog () {
         functionoutput=$(eval "$input" 2>&1)
         logoutput="$input; ${functionoutput}"
         echo "${logoutput}"
-        if [[ "${logoutput#*;}" != "" ]]
+        if [[ "${logoutput#*;}" != " " ]]
         then
             logtype="$LOGTYPE_ERROR"
         fi
         write_logfile "${logtype}" "${logdescription}" "${logoutput}"
         if [[ "${functionoutput}" == *no\ crontab\ for\ root* ]]
         then
-            return 1
+            CRON_EXISTS=false
         else
-            return 0
+            CRON_EXISTS=true
         fi
     fi
 }
@@ -152,16 +155,16 @@ printlog_tmp () {
         functionoutput=$(eval "$input" 2>&1)
         logoutput="$input; ${functionoutput}"
         echo "${logoutput}"
-        if [[ "${logoutput#*;}" != ";" ]]
+        if [[ "${logoutput#*;}" != " " ]]
         then
             logtype="$LOGTYPE_ERROR"
         fi
         write_tmp_logfile "${logtype}" "${logdescription}" "${logoutput}"
         if [[ "${functionoutput}" == *no\ crontab\ for\ root* ]]
         then
-            return 1
+            CRON_EXISTS=false
         else
-            return 0
+            CRON_EXISTS=true
         fi
     fi
 }
@@ -541,8 +544,8 @@ sleep 1
 LOGDESC="Setting up Crontab"
 printlog "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Setting up Crontab"
 printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking if there already is a Crontab"
-LOGOUTPUT=$(printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo crontab -u root -l 1> /dev/null")
-if [[ $LOGOUTPUT = 1 ]]
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo crontab -u root -l 1> /dev/null"
+if ! [[ $CRON_EXISTS ]]
 then
     printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_WARNING" "There's no Crontab! Creating one now"
     printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo crontab -u root ${CRON_FILE} 1> /dev/null"
@@ -570,7 +573,7 @@ printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking if I exi
 if [ -f "${MY_PATH}" ]
 then
     printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "It seems I still exist. Purging myself now for Cleanup"
-	printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo rm ${MY_PATH}"
+    printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo rm ${MY_PATH}"
 else
     printlog "$PRINTTYPE_TEXT" "$RED" "$LOGDESC" "$LOGTYPE_WARNING" "It seems I don't exist in the Directory I'm run. Not able to clean myself up!"
 fi
