@@ -109,8 +109,7 @@ printlog () {
         functionoutput=$(eval "$input")
         logoutput="$input; ${functionoutput}"
         echo "${logoutput}"
-        error="${logoutput#*;}"
-        if [[ -n "$error" ]]
+        if [[ "${logoutput#*;}" != ";" ]]
         then
             logtype="$LOGTYPE_ERROR"
         fi
@@ -153,8 +152,7 @@ printlog_tmp () {
         functionoutput=$(eval "$input")
         logoutput="$input; ${functionoutput}"
         echo "${logoutput}"
-        error="${logoutput#*;}"
-        if [[ -n "$error" ]]
+        if [[ "${logoutput#*;}" != ";" ]]
         then
             logtype="$LOGTYPE_ERROR"
         fi
