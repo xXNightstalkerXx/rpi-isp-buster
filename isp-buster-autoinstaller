@@ -189,10 +189,13 @@ os_type=${os_type#*=}
 
 if [[ "$os_type" == *"Kali"* ]]
 then
-	INSTALL_OPTIONS=1
-	echo "$os_type"
-    LOGOUTPUT="${os_type}"
-    write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
+	printlog_tmp "$PRINTTYPE_TEXT" "$RED" "$LOGDESC" "$LOGTYPE_ERROR" "Wrong Operating System detected! Aborting the Installation!"
+	sleep 1
+	exit 1
+	#INSTALL_OPTIONS=1
+	#echo "$os_type"
+    #LOGOUTPUT="${os_type}"
+    #write_tmp_logfile "${LOGTYPE_INFO}" "${LOGDESC}" "${LOGOUTPUT}"
 elif [[ "$os_type" == *"Raspbian"* ]]
 then
 	if [[ $(cat /boot/issue.txt) == *"stage2"* ]]
