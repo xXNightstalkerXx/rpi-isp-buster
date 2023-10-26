@@ -386,28 +386,6 @@ then
     echo ""
 	read -r -p "${GREEN}Enter the IPv4 of the IPerf Host: ${STD}" ip_address;
     echo ""
-    printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking if the Host is reachable"
-	if ping -c 1 "$ip_address" &> /dev/null
-	then
-        printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "The Host is reachable!"
-		i=1
-	else
-		i=0
-	fi
-	while [[ $i -eq 0 ]]
-	do
-        printlog "$PRINTTYPE_TEXT" "$RED" "$LOGDESC" "$LOGTYPE_WARNING" "The Host is not reachable! Please try a different IP!"
-		read -r -p "Enter the IP of the NAS Server: " ip_address;
-		echo ""
-        printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking if the Host is reachable"
-		if ping -c 1 "$ip_address" &> /dev/null
-		then
-            printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "The Host is reachable!"
-			i=1
-		else
-			i=0
-		fi
-	done
     printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Changing IPerf to True and Host IPv4 within ${PYTHON_FILE}"
     printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo sed -i \"s/^iperf = False/iperf = True/\" ${PYTHON_FILE} 1> /dev/null"
     printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo sed -i \"s/^target_ip = None/target_ip = '${ip_address}'/\" ${PYTHON_FILE} 1> /dev/null"
