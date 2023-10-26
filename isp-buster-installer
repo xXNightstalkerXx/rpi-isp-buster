@@ -23,6 +23,7 @@ BAK_CRON_FILE="${BAK_DIR}/crontab.bak"
 LOGFILE="${LOGS_DIR}/isp-buster_installation_log.txt"
 TMP_LOGFILE="/home/${USER}/isp-buster_tmp_installation_log.txt"
 APT_LIST="/etc/apt/sources.list.d/speedtest.list"
+NTP=/etc/systemd/timesyncd.conf
 
 # Logtype Declarations
 PRINTTYPE_DESC="DESC"
@@ -45,6 +46,7 @@ CRON_EXISTS="false"
 GIT_ISPBUSTER="https://github.com/xXNightstalkerXx/isp-buster.git"
 
 # Color Declarations
+DEL="\033[K2\r"
 STD=$(tput setaf 15)
 RED=$(tput setaf 9 bold)
 GREEN=$(tput setaf 10 bold)
@@ -169,6 +171,107 @@ printlog_tmp () {
     fi
 }
 
+check_clocksync () {
+	SYNC=$(sudo timedatectl | grep "synchronized")
+	if [[ "$SYNC" == *"no" ]]
+	then
+		SYNC=0
+	elif [[ "$SYNC" == *"yes" ]]
+	then
+		SYNC=1
+	else
+		SYNC=2
+	fi
+}
+
+check_clocksync_verbose () {
+    printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking Sync Status of the Systemclock, this could take up to 2 minutes!"
+	timeout=240
+	counter=1
+	while [[ $SYNC -eq 0 && $timeout -gt 0 ]]
+	do
+		if [[ $counter -eq 1 ]]
+		then
+			echo -ne "${DEL}${BLUE}Checking Sync Status of the Systemclock.${STD}"
+		elif [[ $counter -eq 2 ]]
+		then
+			echo -ne "${DEL}${BLUE}Checking Sync Status of the Systemclock..${STD}"
+		elif [[ $counter -eq 3 ]]
+		then
+			echo -ne "${DEL}${BLUE}Checking Sync Status of the Systemclock...${STD}"
+			counter=0
+		fi
+		check_clocksync
+		counter=$((counter+1))
+		timeout=$((timeout-1))
+		sleep 0.5
+	done
+	echo -e "${DEL}${BLUE}Checking Sync Status of the Systemclock...${STD}"
+    printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Check finished!"
+	echo ""
+	if [[ $SYNC -eq 1 ]]
+	then
+        printlog_tmp "$PRINTTYPE_TEXT" "$GREEN" "$LOGDESC" "$LOGTYPE_INFO" "The Systemclock is synchronized!"
+	else
+		if [[ $SYNC -eq 0 ]]
+		then
+            printlog_tmp "$PRINTTYPE_TEXT" "$RED" "$LOGDESC" "$LOGTYPE_ERROR" "Couldn't synchronize the Systemclock!"
+            printlog_tmp "$PRINTTYPE_TEXT" "$RED" "$LOGDESC" "$LOGTYPE_ERROR" "Exiting Script now!"
+		else
+            printlog_tmp "$PRINTTYPE_TEXT" "$RED" "$LOGDESC" "$LOGTYPE_ERROR" "There was an error while reading the Sync Status!"
+            printlog_tmp "$PRINTTYPE_TEXT" "$RED" "$LOGDESC" "$LOGTYPE_ERROR" "Exiting Script now!"
+		fi
+		echo ""
+		sleep 1
+		exit
+	fi
+}
+
+setup_local_ntp () {
+	echo ""
+    LOGDESC="Setup Local NTP Server"
+    printlog_tmp "$PRINTTYPE_TEXT" "$GREEN" "$LOGDESC" "$LOGTYPE_INFO" "Do you want to set the NTP Server IP manually or setup the Default Gateway?"
+	echo ""
+	echo "1. Set IP to NTP Server manually"
+	echo "2. Fetch IP of the default Gateway"
+	echo ""
+	read -r -p "${GREEN}Enter a Number for an Option: ${STD}" n
+	while [[ $n -lt 1 || $n -gt 2 ]]
+	do
+			echo ""
+			echo "${RED}Wrong Input! Please Select a Number for an Option!${STD}"
+			read -r -p "Enter a Number for an Option: " n;
+	done
+	if [[ $n -eq 1 ]]
+	then
+			echo ""
+			read -r -p "${GREEN}Enter the IP of the NTP Server: ${STD}" ip_adress;
+            printlog_tmp "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Setting up the NTP Server within ${NTP}"
+            printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo sed -i \"s/^#NTP=.*/NTP=${ip_adress}/g\" ${NTP} 1> /dev/null"
+            printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo sed -i \"s/^NTP=.*/NTP=${ip_adress}/g\" ${NTP} 1> /dev/null"
+            printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo sed -i \"s/^#FallbackNTP=.*/FallbackNTP=0.debian.pool.ntp.org 1.debian.pool.ntp.org 2.debian.pool.ntp.org 3.debian.pool.ntp.org/g\" ${NTP}"
+            printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo sed -i \"s/^FallbackNTP=.*/FallbackNTP=0.debian.pool.ntp.org 1.debian.pool.ntp.org 2.debian.pool.ntp.org 3.debian.pool.ntp.org/g\" ${NTP}"
+            printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo systemctl restart systemd-timesyncd.service 1> /dev/null"
+			check_clocksync_verbose
+	else
+			echo ""
+			echo "${BLUE}Getting the default Gateway...${STD}"
+            printlog_tmp "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Getting the default Gateway"
+			default_gateway=$(/sbin/ip route | awk '/default/ { print $3 }')
+            printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Default Gateway: ${default_gateway}"
+			printlog_tmp "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Setting up the NTP Server within ${NTP}"
+            printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo sed -i \"s/^#NTP=.*/NTP=${default_gateway}/g\" ${NTP} 1> /dev/null"
+            printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo sed -i \"s/^NTP=.*/NTP=${default_gateway}/g\" ${NTP} 1> /dev/null"
+            printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo sed -i \"s/^#FallbackNTP=.*/FallbackNTP=0.debian.pool.ntp.org 1.debian.pool.ntp.org 2.debian.pool.ntp.org 3.debian.pool.ntp.org/g\" ${NTP} 1> /dev/null"
+            printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo sed -i \"s/^FallbackNTP=.*/FallbackNTP=0.debian.pool.ntp.org 1.debian.pool.ntp.org 2.debian.pool.ntp.org 3.debian.pool.ntp.org/g\" ${NTP} 1> /dev/null"
+            printlog_tmp "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo systemctl restart systemd-timesyncd.service 1> /dev/null"
+			check_clocksync_verbose
+	fi
+	echo ""
+    printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Systemclock is now in Sync! Continuing the Installation!"
+    sleep 1
+}
+
 # Main Script
 echo ""
 echo ""
@@ -236,6 +339,52 @@ echo ""
 printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Operating System okay! Continuing the Installation!"
 sleep 1
 
+LOGDESC="Checking Systemclock Sync Status"
+printlog_tmp "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Checking Systemclock Sync Status"
+check_clocksync
+if [[ $SYNC -eq 1 ]]
+then
+    printlog_tmp "$PRINTTYPE_TEXT" "$GREEN" "$LOGDESC" "$LOGTYPE_INFO" "The Systemclock is synchronized!"
+	echo ""
+    printlog_tmp "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Systemclock is now in Sync! Continuing the Installation!"
+    sleep 1
+else
+	if [[ $SYNC -eq 0 ]]
+	then
+        printlog_tmp "$PRINTTYPE_TEXT" "$RED" "$LOGDESC" "$LOGTYPE_WARNING" "Couldn't synchronize the Systemclock!"
+		echo ""
+        printlog_tmp "$PRINTTYPE_TEXT" "$RED" "$LOGDESC" "$LOGTYPE_WARNING" "If your Firewall blocks vulnerable NTP Packets to the Internet"
+        printlog_tmp "$PRINTTYPE_TEXT" "$RED" "$LOGDESC" "$LOGTYPE_WARNING" "this machine won't be able to get the correct systemtime!"
+		echo ""
+		echo ""
+        printlog_tmp "$PRINTTYPE_TEXT" "$GREEN" "$LOGDESC" "$LOGTYPE_INFO" "Fetch systemtime from a Local NTP Server?"
+		read -r -p "Yes (y)/ No (n): " n;
+		while ! [[ "$n" =~ ^(y|n)$ ]];
+		do
+			echo ""
+			echo "${RED}Wrong Input! Please type 'y' for 'YES' or 'n' for 'NO'!${STD}"
+			read -r -p "Yes (y)/ No (n): " n;
+		done
+		if [[ "$n" =~ ^(y)$ ]];
+		then
+			setup_local_ntp
+		else
+			echo ""
+            printlog_tmp "$PRINTTYPE_TEXT" "$RED" "$LOGDESC" "$LOGTYPE_ERROR" "Couldn't synchronize the Systemclock!"
+            printlog_tmp "$PRINTTYPE_TEXT" "$RED" "$LOGDESC" "$LOGTYPE_ERROR" "Exiting Script now!"
+			echo ""
+			sleep 1
+			exit
+		fi
+	else
+        printlog_tmp "$PRINTTYPE_TEXT" "$RED" "$LOGDESC" "$LOGTYPE_ERROR" "There was an error while reading the Sync Status!"
+        printlog_tmp "$PRINTTYPE_TEXT" "$RED" "$LOGDESC" "$LOGTYPE_ERROR" "Exiting Script now!"
+		echo ""
+		sleep 1
+		exit
+	fi
+fi
+
 LOGDESC="Updating Repository List"
 printlog_tmp "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Updating Repository List"
 LOGOUTPUT=$(sudo apt-get update)
@@ -248,7 +397,7 @@ sleep 1
 LOGDESC="Update OS"
 printlog_tmp "$PRINTTYPE_DESC" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Update OS"
 printlog_tmp "$PRINTTYPE_TEXT" "$GREEN" "$LOGDESC" "$LOGTYPE_INFO" "It is highly recommended to update your OS before Installation!"
-echo "${GREEN}Do you want to update your OS?${STD}"
+printlog_tmp "$PRINTTYPE_TEXT" "$GREEN" "$LOGDESC" "$LOGTYPE_INFO" "Do you want to update your OS?"
 read -r -p "Yes (y)/ No (n): " n;
 
 while ! [[ "$n" =~ ^(y|n)$ ]];
