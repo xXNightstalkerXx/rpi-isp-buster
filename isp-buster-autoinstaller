@@ -42,6 +42,7 @@ CRON_STRING="*/30 * * * * /usr/bin/isp-buster"
 CRON_EXISTS="false"
 
 # Git URL Declarations
+GIT_BRANCH="Debian_Bullseye"
 GIT_ISPBUSTER="https://github.com/xXNightstalkerXx/isp-buster.git"
 
 # Color Declarations
@@ -341,7 +342,7 @@ printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Changing Director
 printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "cd ${INSTALL_DIR}"
 cd "${INSTALL_DIR}" &> /dev/null
 printlog "$PRINTTYPE_DOTS" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Downloading Repository"
-printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo git clone ${GIT_ISPBUSTER} 1> /dev/null"
+printlog "$PRINTTYPE_FUNCTION" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "sudo git clone -b ${GIT_BRANCH} ${GIT_ISPBUSTER} 1> /dev/null"
 echo ""
 printlog "$PRINTTYPE_TEXT" "$BLUE" "$LOGDESC" "$LOGTYPE_INFO" "Repository successfully downloaded! Continuing Installation!"
 sleep 1
