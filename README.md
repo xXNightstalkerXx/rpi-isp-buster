@@ -1,3 +1,4 @@
+## DEPRECIATED (Debian Bullseye)
 # ISP-Buster
 The ISP-Buster helps you to do Speedtests to an external Server and within your Network and logs them to .csv Files.
 
@@ -27,7 +28,7 @@ Also feel free to contribute to this Repository and make it better :)
 ----------------------------------------------------------------
 # INSTALLATION
 
-    wget https://raw.githubusercontent.com/xXNightstalkerXx/isp-buster/master/isp-buster-installer
+    wget https://raw.githubusercontent.com/xXNightstalkerXx/isp-buster/Debian_Bullseye/isp-buster-installer
 Download the isp-buster-installer Script with wget
 
     sudo chmod 0755 isp-buster-installer
