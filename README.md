@@ -27,7 +27,7 @@ Also feel free to contribute to this Repository and make it better :)
 ----------------------------------------------------------------
 # INSTALLATION
 
-    wget https://raw.githubusercontent.com/xXNightstalkerXx/isp-buster/master/isp-buster-installer
+    wget https://raw.githubusercontent.com/xXNightstalkerXx/ISP-Buster/master/isp-buster-installer
 Download the isp-buster-installer Script with wget
 
     sudo chmod 0755 isp-buster-installer
