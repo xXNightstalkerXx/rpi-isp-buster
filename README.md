@@ -1,4 +1,5 @@
 # ISP-Buster
+
 The ISP-Buster helps you to do Speedtests to an external Server and within your Network and logs them to .csv Files.
 
 This is achieved with a custom Python Program which tests the internal speeds of your Network with Iperf3 and the
@@ -22,9 +23,9 @@ I'm not an expert Coder so use this Repo on your own Risk and don't blame me if 
 If you find something interesting within my Scripts feel free to copy parts of it and implement it into your own code.</br>
 Also feel free to contribute to this Repository and make it better :)
 
+----------------------------------------------------------------
+----------------------------------------------------------------
 
-----------------------------------------------------------------
-----------------------------------------------------------------
 # INSTALLATION
 
     wget https://raw.githubusercontent.com/xXNightstalkerXx/ISP-Buster/master/isp-buster-installer
@@ -41,14 +42,16 @@ The Installer does the rest of the Job for you now.
 
 ----------------------------------------------------------------
 ----------------------------------------------------------------
+
 # HOW TO USE
 
     isp-buster
 Launches the speedtest.py python program manually which executes the speedtests and logs them into .csv Files.</br>
 The .csv Files are located at /etc/isp-buster/results/ and there are three .csv Files created:
-   - "isp-buster_combined.csv" which includes Speedtest Results from IPerf3 and Speedtest-CLI if IPerf is not disabled
-   - "isp-buster_speedtest.csv" which includes Speedtest Results just from Speedtest-CLI
-   - "isp-buster_iperf.csv" which includes Speedtest Results just from IPerf3 if IPerf is not disabled
+
+- "isp-buster_combined.csv" which includes Speedtest Results from IPerf3 and Speedtest-CLI if IPerf is not disabled
+- "isp-buster_speedtest.csv" which includes Speedtest Results just from Speedtest-CLI
+- "isp-buster_iperf.csv" which includes Speedtest Results just from IPerf3 if IPerf is not disabled
 
 There are also logfiles created as .csv Files at /etc/isp-buster/logs/ .</br>
 </br>
@@ -68,9 +71,10 @@ You will also find the Server ID there used by the Settings within the speedtest
     sudo nano /etc/isp-buster/speedtest.py
 To open the Python Script and change the desired Settings for the Script.</br>
 Within the Program Header you will find the following Settings:
-  - "iperf = False" change this to "True" if you want to set up an IPerf3 Host on your Firewall
-  - "target_ip = None" change this to the IPv4 address of your IPerf3 Host
-  - "target_id = None" change this to the ID of the Ookla Server you want to be used by speedtest-cli
+
+- "iperf = False" change this to "True" if you want to set up an IPerf3 Host on your Firewall
+- "target_ip = None" change this to the IPv4 address of your IPerf3 Host
+- "target_id = None" change this to the ID of the Ookla Server you want to be used by speedtest-cli
 
 </br>
 </br>
